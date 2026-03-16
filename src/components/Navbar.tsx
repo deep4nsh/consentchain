@@ -2,15 +2,23 @@
 
 import Link from "next/link";
 import { ShieldCheck, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useWallet } from "@/context/WalletContext";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const { accountAddress, connectWallet, disconnectWallet } = useWallet();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const navLinks = [
         { name: "Home", href: "/" },
         { name: "Demo", href: "/demo" },
+        { name: "Dashboard", href: "/dashboard" },
     ];
 
     return (
@@ -39,12 +47,28 @@ export default function Navbar() {
                                     {link.name}
                                 </Link>
                             ))}
-                            <Link
-                                href="/demo"
-                                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all hover:-translate-y-0.5"
-                            >
-                                Try App
-                            </Link>
+                            <div className="flex items-center space-x-4 pl-4 border-l border-white/10">
+                                {mounted && accountAddress ? (
+                                    <div className="flex items-center space-x-3 bg-white/5 pl-4 pr-1 py-1 rounded-full border border-white/10">
+                                        <span className="text-sm font-mono text-gray-300">
+                                            {accountAddress.substring(0, 6)}...{accountAddress.substring(accountAddress.length - 4)}
+                                        </span>
+                                        <button
+                                            onClick={disconnectWallet}
+                                            className="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+                                        >
+                                            Disconnect
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={connectWallet}
+                                        className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all hover:-translate-y-0.5"
+                                    >
+                                        Connect Wallet
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -80,13 +104,36 @@ export default function Navbar() {
                                     {link.name}
                                 </Link>
                             ))}
-                            <Link
-                                href="/demo"
-                                onClick={() => setIsOpen(false)}
-                                className="w-full text-center mt-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white block px-3 py-2 rounded-md text-base font-medium"
-                            >
-                                Try App
-                            </Link>
+
+                            <div className="pt-4 mt-2 border-t border-white/10">
+                                {mounted && accountAddress ? (
+                                    <div className="space-y-3">
+                                        <div className="p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center">
+                                            <span className="text-sm font-mono text-gray-300">
+                                                {accountAddress.substring(0, 8)}...{accountAddress.substring(accountAddress.length - 8)}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                disconnectWallet();
+                                                setIsOpen(false);
+                                            }}
+                                            className="w-full text-center bg-red-500/20 text-red-400 hover:bg-red-500/30 block px-3 py-3 rounded-lg text-base font-medium transition-colors border border-red-500/20"
+                                        >
+                                            Disconnect Wallet
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            connectWallet();
+                                        }}
+                                        className="w-full text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white block px-3 py-3 rounded-lg text-base font-medium transition-all shadow-lg shadow-purple-500/25"
+                                    >
+                                        Connect Wallet
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </motion.div>
                 )}

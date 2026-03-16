@@ -4,8 +4,11 @@ const algodToken = process.env.ALGOD_TOKEN || '';
 const algodServer = process.env.NEXT_PUBLIC_ALGOD_SERVER || 'https://testnet-api.algonode.cloud';
 const algodPort = process.env.ALGOD_PORT || 443;
 
+const indexerServer = process.env.NEXT_PUBLIC_INDEXER_SERVER || 'https://testnet-idx.algonode.cloud';
+
 // Initialize the Algorand client
 export const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
+export const indexerClient = new algosdk.Indexer(algodToken, indexerServer, algodPort);
 
 // Helper function to get the sponsor account
 export const getSponsorAccount = (): algosdk.Account => {

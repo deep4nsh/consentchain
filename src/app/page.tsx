@@ -61,9 +61,9 @@ export default function LandingPage() {
             <Link href="/demo" className="w-full sm:w-auto px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)] hover:bg-gray-100 hover:scale-105 transition-all flex items-center justify-center gap-2">
               Try the App <ArrowRight className="w-5 h-5" />
             </Link>
-            <a href="#why-needed" className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 rounded-full font-semibold text-lg hover:bg-white/10 transition-all text-white flex items-center justify-center">
-              Learn More
-            </a>
+            <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 rounded-full font-semibold text-lg hover:bg-white/10 transition-all text-white flex items-center justify-center">
+              User Dashboard
+            </Link>
           </motion.div>
         </motion.div>
 

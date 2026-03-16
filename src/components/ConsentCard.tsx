@@ -1,15 +1,45 @@
 'use client';
 
-import { Shield, FileText, Clock, Building2 } from 'lucide-react';
+import { Shield, FileText, Clock, Building2, CheckSquare, Square } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+export interface Organization { id: string, name: string }
+export interface DataScope { id: string, label: string }
+export interface Purpose { id: string, label: string }
+export interface Duration { value: number, label: string }
+
 interface ConsentCardProps {
+    organizations: Organization[];
+    dataScopes: DataScope[];
+    purposes: Purpose[];
+    durations: Duration[];
+
+    selectedOrganization: string;
+    onOrganizationChange: (id: string) => void;
+
+    selectedScopes: string[];
+    onScopeToggle: (id: string) => void;
+
+    selectedPurpose: string;
+    onPurposeChange: (id: string) => void;
+
+    selectedDuration: number;
+    onDurationChange: (value: number) => void;
+
     onAccept: () => void;
     onDecline: () => void;
     isLoading: boolean;
+    isWalletConnected: boolean;
 }
 
-export default function ConsentCard({ onAccept, onDecline, isLoading }: ConsentCardProps) {
+export default function ConsentCard({
+    organizations, dataScopes, purposes, durations,
+    selectedOrganization, onOrganizationChange,
+    selectedScopes, onScopeToggle,
+    selectedPurpose, onPurposeChange,
+    selectedDuration, onDurationChange,
+    onAccept, onDecline, isLoading, isWalletConnected
+}: ConsentCardProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -23,33 +53,89 @@ export default function ConsentCard({ onAccept, onDecline, isLoading }: ConsentC
                 <Shield className="w-8 h-8 text-blue-400" />
             </div>
 
-            <h2 className="text-2xl font-bold text-center mb-2">Consent Request</h2>
+            <h2 className="text-2xl font-bold text-center mb-2">Consent Configuration</h2>
             <p className="text-gray-400 text-center mb-8">
-                An organization is requesting access to your personal data.
+                Configure the parameters for the consent you are about to grant.
             </p>
 
             <div className="space-y-4 mb-8">
-                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                    <Building2 className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                        <p className="text-sm text-gray-400">Organization</p>
-                        <p className="font-medium text-white">HealthPlus Research</p>
+                {/* Organization Setup */}
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                    <div className="flex items-center space-x-2">
+                        <Building2 className="w-5 h-5 text-gray-400" />
+                        <p className="text-sm font-medium text-gray-300">Requesting Organization</p>
+                    </div>
+                    <select
+                        value={selectedOrganization}
+                        onChange={(e) => onOrganizationChange(e.target.value)}
+                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
+                    >
+                        <option value="" disabled>Select an Organization</option>
+                        {organizations.map(org => (
+                            <option key={org.id} value={org.id}>{org.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Data Scopes Setup */}
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                    <div className="flex items-center space-x-2">
+                        <FileText className="w-5 h-5 text-gray-400" />
+                        <p className="text-sm font-medium text-gray-300">Data Scopes</p>
+                    </div>
+                    <div className="space-y-2">
+                        {dataScopes.map((scope) => {
+                            const isSelected = selectedScopes.includes(scope.id);
+                            return (
+                                <div
+                                    key={scope.id}
+                                    onClick={() => onScopeToggle(scope.id)}
+                                    className={`flex items-center space-x-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${isSelected ? 'bg-blue-500/10 border-blue-500/30' : 'bg-black/20 border-white/5 hover:border-white/20'}`}
+                                >
+                                    <div className="text-blue-400">
+                                        {isSelected ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5 opacity-50" />}
+                                    </div>
+                                    <span className={`text-sm ${isSelected ? 'text-white' : 'text-gray-400'}`}>{scope.label}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                    <FileText className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                        <p className="text-sm text-gray-400">Data Requested</p>
-                        <p className="font-medium text-white">Medical History, Vitals</p>
+                {/* Duration & Purpose Setup */}
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
+                    <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                            <Clock className="w-5 h-5 text-gray-400" />
+                            <p className="text-sm font-medium text-gray-300">Duration</p>
+                        </div>
+                        <select
+                            value={selectedDuration}
+                            onChange={(e) => onDurationChange(Number(e.target.value))}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
+                        >
+                            <option value={0} disabled>Select Duration</option>
+                            {durations.map(dur => (
+                                <option key={dur.value} value={dur.value}>{dur.label}</option>
+                            ))}
+                        </select>
                     </div>
-                </div>
 
-                <div className="flex items-start space-x-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                    <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                        <p className="text-sm text-gray-400">Duration & Purpose</p>
-                        <p className="font-medium text-white">6 Months for Medical Research</p>
+                    <div className="space-y-3 pt-2 border-t border-white/10">
+                        <div className="flex items-center space-x-2">
+                            <FileText className="w-5 h-5 text-gray-400" />
+                            <p className="text-sm font-medium text-gray-300">Purpose of Processing</p>
+                        </div>
+                        <select
+                            value={selectedPurpose}
+                            onChange={(e) => onPurposeChange(e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
+                        >
+                            <option value="" disabled>Select Purpose</option>
+                            {purposes.map(purp => (
+                                <option key={purp.id} value={purp.id}>{purp.label}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
             </div>
@@ -60,12 +146,12 @@ export default function ConsentCard({ onAccept, onDecline, isLoading }: ConsentC
                     disabled={isLoading}
                     className="flex-1 py-3 px-4 rounded-xl border border-white/10 hover:bg-white/5 transition-colors disabled:opacity-50"
                 >
-                    Decline
+                    Cancel
                 </button>
                 <button
                     onClick={onAccept}
-                    disabled={isLoading}
-                    className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all relative overflow-hidden disabled:opacity-50"
+                    disabled={isLoading || !isWalletConnected || !selectedOrganization || selectedScopes.length === 0 || !selectedPurpose || selectedDuration === 0}
+                    className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isLoading ? (
                         <span className="flex items-center justify-center">

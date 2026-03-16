@@ -1,27 +1,69 @@
 'use client';
 
-import { useState } from 'react';
-import ConsentCard from '@/components/ConsentCard';
+import { useState, useEffect } from 'react';
+import ConsentCard, { Organization, DataScope, Purpose, Duration } from '@/components/ConsentCard';
 import TransactionReceipt from '@/components/TransactionReceipt';
 import { motion } from 'framer-motion';
+import { useWallet } from '@/context/WalletContext';
+
+const ORGANIZATIONS: Organization[] = [
+    { id: 'ORG001', name: 'HealthPlus Research' },
+    { id: 'ORG002', name: 'Global Finance Corp' },
+    { id: 'ORG003', name: 'City Transport Authority' },
+];
+
+const DATA_SCOPES: DataScope[] = [
+    { id: 'medical_history', label: 'Medical History' },
+    { id: 'vitals', label: 'Vitals & Activity Log' },
+    { id: 'financial_records', label: 'Financial Records' },
+    { id: 'location_data', label: 'Real-time Location Data' },
+];
+
+const PURPOSES: Purpose[] = [
+    { id: 'research', label: 'Academic & Medical Research' },
+    { id: 'service_provision', label: 'Service Provision & Optimization' },
+    { id: 'marketing', label: 'Targeted Marketing' },
+];
+
+const DURATIONS: Duration[] = [
+    { value: 1, label: '1 Month' },
+    { value: 3, label: '3 Months' },
+    { value: 6, label: '6 Months' },
+    { value: 12, label: '1 Year' },
+];
 
 export default function Home() {
+    const { accountAddress } = useWallet();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     const [status, setStatus] = useState<'pending' | 'processing' | 'success'>('pending');
     const [receiptData, setReceiptData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const [selectedOrganization, setSelectedOrganization] = useState<string>('');
+    const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
+    const [selectedPurpose, setSelectedPurpose] = useState<string>('');
+    const [selectedDuration, setSelectedDuration] = useState<number>(0);
+
+    const handleScopeToggle = (id: string) => {
+        setSelectedScopes((prev) =>
+            prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+        );
+    };
 
     const handleAccept = async () => {
         setStatus('processing');
         setError(null);
 
-        // Construct the payload as required by MVP specs
+        // Construct the dynamic payload
         const payload = {
-            user_id: "U123",
-            organization_id: "ORG001",
-            data_scope: "medical_history,vitals",
-            purpose: "research",
+            user_id: accountAddress,
+            organization_id: selectedOrganization,
+            data_scope: selectedScopes.join(','),
+            purpose: selectedPurpose,
             consent_timestamp: new Date().toISOString(),
-            expiry_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString() // 6 months
+            expiry_date: new Date(Date.now() + selectedDuration * 30 * 24 * 60 * 60 * 1000).toISOString()
         };
 
         try {
@@ -47,7 +89,12 @@ export default function Home() {
     };
 
     const handleDecline = () => {
-        alert("Consent declined. In a full system, you would be redirected.");
+        // Reset selections instead of alert
+        setSelectedOrganization('');
+        setSelectedScopes([]);
+        setSelectedPurpose('');
+        setSelectedDuration(0);
+        setError("Consent configured cleared. Start over.");
     };
 
     return (
@@ -70,11 +117,34 @@ export default function Home() {
                 </motion.div>
             )}
 
+            {mounted && !accountAddress && (
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-6 py-3 rounded-xl mb-8 max-w-lg w-full text-center"
+                >
+                    Please connect your Wallet via the Navbar to interact!
+                </motion.div>
+            )}
+
             {status !== 'success' ? (
                 <ConsentCard
+                    organizations={ORGANIZATIONS}
+                    dataScopes={DATA_SCOPES}
+                    purposes={PURPOSES}
+                    durations={DURATIONS}
+                    selectedOrganization={selectedOrganization}
+                    onOrganizationChange={setSelectedOrganization}
+                    selectedScopes={selectedScopes}
+                    onScopeToggle={handleScopeToggle}
+                    selectedPurpose={selectedPurpose}
+                    onPurposeChange={setSelectedPurpose}
+                    selectedDuration={selectedDuration}
+                    onDurationChange={setSelectedDuration}
                     onAccept={handleAccept}
                     onDecline={handleDecline}
                     isLoading={status === 'processing'}
+                    isWalletConnected={!!accountAddress}
                 />
             ) : (
                 <TransactionReceipt {...receiptData} />
