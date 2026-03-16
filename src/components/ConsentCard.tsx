@@ -3,11 +3,7 @@
 import { Shield, FileText, Clock, Building2, CheckSquare, Square } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export interface Organization { id: string, name: string }
-export interface DataScope { id: string, label: string }
-export interface Purpose { id: string, label: string }
-export interface Duration { value: number, label: string }
-
+import { Organization, DataScope, Purpose, Duration } from '@/lib/constants';
 interface ConsentCardProps {
     organizations: Organization[];
     dataScopes: DataScope[];

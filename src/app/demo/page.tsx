@@ -1,37 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ConsentCard, { Organization, DataScope, Purpose, Duration } from '@/components/ConsentCard';
+import ConsentCard from '@/components/ConsentCard';
 import TransactionReceipt from '@/components/TransactionReceipt';
 import { motion } from 'framer-motion';
 import { useWallet } from '@/context/WalletContext';
-
-const ORGANIZATIONS: Organization[] = [
-    { id: 'ORG001', name: 'HealthPlus Research' },
-    { id: 'ORG002', name: 'Global Finance Corp' },
-    { id: 'ORG003', name: 'City Transport Authority' },
-];
-
-const DATA_SCOPES: DataScope[] = [
-    { id: 'medical_history', label: 'Medical History' },
-    { id: 'vitals', label: 'Vitals & Activity Log' },
-    { id: 'financial_records', label: 'Financial Records' },
-    { id: 'location_data', label: 'Real-time Location Data' },
-];
-
-const PURPOSES: Purpose[] = [
-    { id: 'research', label: 'Academic & Medical Research' },
-    { id: 'service_provision', label: 'Service Provision & Optimization' },
-    { id: 'marketing', label: 'Targeted Marketing' },
-];
-
-const DURATIONS: Duration[] = [
-    { value: 1, label: '1 Month' },
-    { value: 3, label: '3 Months' },
-    { value: 6, label: '6 Months' },
-    { value: 12, label: '1 Year' },
-];
-
+import { ORGANIZATIONS, DATA_SCOPES, PURPOSES, DURATIONS } from '@/lib/constants';
 export default function Home() {
     const { accountAddress } = useWallet();
     const [mounted, setMounted] = useState(false);
