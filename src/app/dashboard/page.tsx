@@ -48,18 +48,52 @@ export default function Dashboard() {
         }
     };
 
-    const handleRevoke = async (transactionId: string) => {
+    const handleRevoke = async (organizationId: string) => {
         if (!accountAddress) return;
         try {
-            setRevokingId(transactionId);
-            const res = await fetch('/api/consent/revoke', {
+            setRevokingId(organizationId);
+
+            // STEP 1: Build Unsigned Revocation Txn on Backend
+            const buildRes = await fetch('/api/consent/revoke', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ originalTxId: transactionId, user_id: accountAddress })
+                body: JSON.stringify({ organization_id: organizationId, user_id: accountAddress })
             });
 
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error);
+            const buildData = await buildRes.json();
+            if (!buildData.success) throw new Error(buildData.error);
+
+            // STEP 2: Sign in Frontend Web3 Wallet
+            const unsignedTxnsBase64 = buildData.txns as string[];
+            const algosdk = (await import('algosdk')).default;
+
+            const txnObjArray = unsignedTxnsBase64.map(b64 => {
+                const binaryTxn = new Uint8Array(Buffer.from(b64, 'base64'));
+                const txn = algosdk.decodeUnsignedTransaction(binaryTxn);
+                return { txn, signers: [accountAddress!] };
+            });
+
+            let signedTxnGroups;
+            try {
+                // @ts-ignore
+                signedTxnGroups = await window.contextPeraWallet.signTransaction([txnObjArray]);
+            } catch (err: any) {
+                throw err;
+            }
+
+            // STEP 3: Submit signed transactions
+            const base64SignedTxns = signedTxnGroups.map((arrIdx: any) => Buffer.from(arrIdx).toString('base64'));
+
+            const submitRes = await fetch('/api/consent/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    signedTxns: base64SignedTxns
+                })
+            });
+
+            const submitData = await submitRes.json();
+            if (!submitData.success) throw new Error(submitData.error);
 
             // Refetch to get updated status
             await fetchConsents();
@@ -205,11 +239,11 @@ export default function Dashboard() {
                                                 <BadgeCheck className="w-4 h-4 mr-1.5" /> Active
                                             </span>
                                             <button
-                                                onClick={() => handleRevoke(consent.transactionId)}
-                                                disabled={revokingId === consent.transactionId}
+                                                onClick={() => handleRevoke(consent.organization_id)}
+                                                disabled={revokingId === consent.organization_id}
                                                 className="text-sm font-medium text-red-400 hover:text-red-300 transition-colors border-b border-dashed border-red-500/50 hover:border-red-400 disabled:opacity-50"
                                             >
-                                                {revokingId === consent.transactionId ? 'Revoking...' : 'Revoke Access'}
+                                                {revokingId === consent.organization_id ? 'Revoking...' : 'Revoke Access'}
                                             </button>
                                         </>
                                     ) : consent.status === 'revoked' ? (

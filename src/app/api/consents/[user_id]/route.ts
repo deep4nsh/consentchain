@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { indexerClient, getSponsorAccount } from '@/lib/algorand';
+import { algodClient } from '@/lib/algorand';
+
+const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
 
 export async function GET(
     request: Request,
@@ -7,72 +9,66 @@ export async function GET(
 ) {
     try {
         const { user_id: userId } = await context.params;
-        const sponsor = getSponsorAccount();
 
-        // Query the indexer for transactions sent to the sponsor account
-        // We look for both "ConsentChain:" and "ConsentChain_Revoke:" notes
-        const response = await indexerClient
-            .searchForTransactions()
-            .address(sponsor.addr)
-            // .notePrefix() is limited to one prefix, so we fetch all txns and filter manually
-            // Optimally in prod, an indexer would index specific app calls, but for notes we filter in-memory.
-            .limit(1000)
-            .do();
+        if (!APP_ID) {
+            throw new Error("Smart Contract APP_ID is not configured.");
+        }
 
-        // 1. Identify all revocations first
-        const revokedTxIds = new Set<string>();
-        response.transactions.forEach((tx: any) => {
-            if (tx.note) {
-                try {
-                    const decodedNote = Buffer.from(tx.note, 'base64').toString('utf8');
-                    if (decodedNote.startsWith('ConsentChain_Revoke:')) {
-                        const originalId = decodedNote.replace('ConsentChain_Revoke:', '').trim();
-                        revokedTxIds.add(originalId);
-                    }
-                } catch (e) {
-                    // ignore parse errors
-                }
+        let appState;
+        try {
+            appState = await algodClient.accountApplicationInformation(userId, APP_ID).do();
+        } catch (e: any) {
+            if (e.status === 404 || e.message?.includes('not found') || e.message?.includes('does not exist')) {
+                // User has not opted into the contract, or contract doesn't exist
+                return NextResponse.json({
+                    success: true,
+                    user_id: userId,
+                    consents: [],
+                    total: 0
+                });
             }
-        });
+            throw e;
+        }
 
-        // 2. Process and decode the consent transactions
-        const consents = response.transactions.map((tx: any) => {
+        const localState = appState.appLocalState;
+        if (!localState || !localState.keyValue) {
+            return NextResponse.json({
+                success: true,
+                user_id: userId,
+                consents: [],
+                total: 0
+            });
+        }
+
+        const kvPairs = localState.keyValue;
+        const consents = [];
+
+        for (const kv of kvPairs) {
+            const orgId = Buffer.from(kv.key).toString('utf8');
+            const valueBytesB64 = kv.value.bytes;
+
+            if (!valueBytesB64) continue;
+
+            const valueStr = Buffer.from(valueBytesB64).toString('utf8');
+
             try {
-                if (!tx.note) return null;
+                const payload = JSON.parse(valueStr);
 
-                // Decode base64 note to string
-                const decodedNote = Buffer.from(tx.note, 'base64').toString('utf8');
+                const isExpired = new Date(payload.exp) < new Date();
 
-                if (!decodedNote.startsWith('ConsentChain:')) return null;
-
-                // Strip the "ConsentChain:" prefix
-                const jsonStr = decodedNote.replace('ConsentChain:', '');
-                const payload = JSON.parse(jsonStr);
-
-                // Filter by the requested user ID
-                if (payload.user_id !== userId) return null;
-
-                const isRevoked = revokedTxIds.has(tx.id);
-                const isExpired = new Date(payload.expiry_date) < new Date();
-
-                let status = 'active';
-                if (isRevoked) status = 'revoked';
-                else if (isExpired) status = 'expired';
-
-                return {
-                    transactionId: tx.id,
-                    timestamp: tx['round-time'] ? new Date(tx['round-time'] * 1000).toISOString() : payload.consent_timestamp,
-                    ...payload,
-                    status
-                };
-            } catch (e) {
-                console.error("Error decoding transaction note:", e);
-                return null;
+                consents.push({
+                    transactionId: 'SmartContractState', // No specific TX ID since it's current state
+                    organization_id: orgId,
+                    data_scope: payload.scopes,
+                    purpose: payload.purpose,
+                    consent_timestamp: payload.timestamp || new Date().toISOString(), // Since we overwrite state, we might not have the original grant time if not stored.
+                    expiry_date: payload.exp,
+                    status: isExpired ? 'expired' : 'active'
+                });
+            } catch (err) {
+                console.error("Error parsing local state value JSON", valueStr);
             }
-        }).filter(Boolean); // Remove nulls
-
-        // Sort descending by timestamp
-        consents.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        }
 
         return NextResponse.json({
             success: true,
@@ -82,7 +78,7 @@ export async function GET(
         });
 
     } catch (error: any) {
-        console.error('Error fetching consents:', error);
+        console.error('Error fetching consens from Smart Contract state:', error);
         return NextResponse.json({
             success: false,
             error: error.message || 'Failed to fetch consent history'

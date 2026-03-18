@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, Menu, X } from "lucide-react";
+import { ShieldCheck, Menu, X, Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useWallet } from "@/context/WalletContext";
+import { useWallet } from "@txnlab/use-wallet-react";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
-    const { accountAddress, connectWallet, disconnectWallet } = useWallet();
+    const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+
+    // @txnlab/use-wallet-react hooks
+    const { activeAddress, wallets } = useWallet();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -21,6 +24,16 @@ export default function Navbar() {
         { name: "Dashboard", href: "/dashboard" },
         { name: "Verify", href: "/verify" },
     ];
+
+    const handleDisconnect = () => {
+        if (activeAddress) {
+            wallets?.forEach((wallet) => {
+                if (wallet.isConnected) {
+                    wallet.disconnect();
+                }
+            });
+        }
+    };
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-md border-b border-white/10">
@@ -49,13 +62,13 @@ export default function Navbar() {
                                 </Link>
                             ))}
                             <div className="flex items-center space-x-4 pl-4 border-l border-white/10">
-                                {mounted && accountAddress ? (
+                                {mounted && activeAddress ? (
                                     <div className="flex items-center space-x-3 bg-white/5 pl-4 pr-1 py-1 rounded-full border border-white/10">
                                         <span className="text-sm font-mono text-gray-300">
-                                            {accountAddress.substring(0, 6)}...{accountAddress.substring(accountAddress.length - 4)}
+                                            {activeAddress.substring(0, 6)}...{activeAddress.substring(activeAddress.length - 4)}
                                         </span>
                                         <button
-                                            onClick={disconnectWallet}
+                                            onClick={handleDisconnect}
                                             className="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
                                         >
                                             Disconnect
@@ -63,7 +76,7 @@ export default function Navbar() {
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={connectWallet}
+                                        onClick={() => setIsWalletModalOpen(true)}
                                         className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all hover:-translate-y-0.5"
                                     >
                                         Connect Wallet
@@ -107,16 +120,16 @@ export default function Navbar() {
                             ))}
 
                             <div className="pt-4 mt-2 border-t border-white/10">
-                                {mounted && accountAddress ? (
+                                {mounted && activeAddress ? (
                                     <div className="space-y-3">
                                         <div className="p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-center">
                                             <span className="text-sm font-mono text-gray-300">
-                                                {accountAddress.substring(0, 8)}...{accountAddress.substring(accountAddress.length - 8)}
+                                                {activeAddress.substring(0, 8)}...{activeAddress.substring(activeAddress.length - 8)}
                                             </span>
                                         </div>
                                         <button
                                             onClick={() => {
-                                                disconnectWallet();
+                                                handleDisconnect();
                                                 setIsOpen(false);
                                             }}
                                             className="w-full text-center bg-red-500/20 text-red-400 hover:bg-red-500/30 block px-3 py-3 rounded-lg text-base font-medium transition-colors border border-red-500/20"
@@ -127,7 +140,8 @@ export default function Navbar() {
                                 ) : (
                                     <button
                                         onClick={() => {
-                                            connectWallet();
+                                            setIsOpen(false);
+                                            setIsWalletModalOpen(true);
                                         }}
                                         className="w-full text-center bg-gradient-to-r from-blue-500 to-purple-600 text-white block px-3 py-3 rounded-lg text-base font-medium transition-all shadow-lg shadow-purple-500/25"
                                     >
@@ -137,6 +151,66 @@ export default function Navbar() {
                             </div>
                         </div>
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Wallet Selector Modal */}
+            <AnimatePresence>
+                {isWalletModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-full max-w-sm"
+                        >
+                            <div className="px-6 py-4 flex items-center justify-between border-b border-white/10">
+                                <h3 className="text-lg font-semibold text-white flex items-center">
+                                    <Wallet className="w-5 h-5 mr-2 text-purple-400" /> Connect a Wallet
+                                </h3>
+                                <button
+                                    onClick={() => setIsWalletModalOpen(false)}
+                                    className="p-1 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-3">
+                                {wallets?.map((wallet) => (
+                                    <button
+                                        key={wallet.id}
+                                        onClick={() => {
+                                            if (wallet.isConnected) {
+                                                wallet.setActive();
+                                            } else {
+                                                wallet.connect();
+                                            }
+                                            setIsWalletModalOpen(false);
+                                        }}
+                                        className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-purple-500/50 transition-all group"
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            {/* Wallet Icon (Using generic or parsing it based on use-wallet) */}
+                                            {wallet.metadata?.icon && (
+                                                <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-8 h-8 rounded-md" />
+                                            )}
+                                            <span className="font-medium text-gray-200 group-hover:text-white">
+                                                {wallet.metadata?.name || wallet.id}
+                                            </span>
+                                        </div>
+                                        <div className="text-xs font-semibold px-2 py-1 rounded bg-black/50 text-gray-400 border border-white/5">
+                                            {wallet.isConnected ? "Connected" : "Connect"}
+                                        </div>
+                                    </button>
+                                ))}
+                                {(!wallets || wallets.length === 0) && (
+                                    <div className="text-center text-sm text-gray-400 py-4">
+                                        No wallet providers found.
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </nav>

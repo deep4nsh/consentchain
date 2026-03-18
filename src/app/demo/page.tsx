@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useWallet } from '@/context/WalletContext';
 import { ORGANIZATIONS, DATA_SCOPES, PURPOSES, DURATIONS } from '@/lib/constants';
 export default function Home() {
-    const { accountAddress } = useWallet();
+    const { accountAddress, signTransactions } = useWallet();
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -41,19 +41,49 @@ export default function Home() {
         };
 
         try {
-            const response = await fetch('/api/consent', {
+            // STEP 1: Build Unsigned Txn(s) on Backend
+            const buildRes = await fetch('/api/consent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to process consent transaction');
+            const buildData = await buildRes.json();
+            if (!buildData.success) {
+                throw new Error(buildData.error || 'Failed to build consent transaction');
             }
 
-            setReceiptData(data);
+            // STEP 2: Decode Base64 and Sign in Frontend Web3 Wallet
+            const unsignedTxnsBase64 = buildData.txns as string[];
+
+            const uint8ArrayTxns = unsignedTxnsBase64.map(b64 => new Uint8Array(Buffer.from(b64, 'base64')));
+
+            let signedTxnGroups;
+            try {
+                signedTxnGroups = await signTransactions(uint8ArrayTxns);
+            } catch (err: any) {
+                console.error(err);
+                throw new Error("Transaction signing failed or was rejected by user");
+            }
+
+            // STEP 3: Submit signed transactions
+            const base64SignedTxns = signedTxnGroups.filter(Boolean).map((arrIdx: any) => Buffer.from(arrIdx).toString('base64'));
+
+            const submitRes = await fetch('/api/consent/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    signedTxns: base64SignedTxns,
+                    consentHash: buildData.consentHash
+                })
+            });
+
+            const submitData = await submitRes.json();
+            if (!submitData.success) {
+                throw new Error(submitData.error || 'Failed to submit signed transaction');
+            }
+
+            setReceiptData(submitData);
             setStatus('success');
         } catch (err: any) {
             console.error(err);

@@ -1,0 +1,6 @@
+#pragma version 8
+
+// Always approve when clearing state
+// This allows users to always exit the contract and clear their local state memory
+int 1
+return

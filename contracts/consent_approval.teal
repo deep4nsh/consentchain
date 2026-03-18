@@ -1,0 +1,110 @@
+#pragma version 8
+
+// Check if this is an Application creation call
+txn ApplicationID
+int 0
+==
+bnz creation
+
+// Handle different OnCompletion types
+txn OnCompletion
+int OptIn
+==
+bnz opt_in
+
+txn OnCompletion
+int CloseOut
+==
+bnz close_out
+
+txn OnCompletion
+int UpdateApplication
+==
+bnz update_app
+
+txn OnCompletion
+int DeleteApplication
+==
+bnz delete_app
+
+txn OnCompletion
+int NoOp
+==
+bnz no_op
+
+err
+
+creation:
+int 1
+return
+
+opt_in:
+// Allow any user to opt-in to allocate local state for consents
+int 1
+return
+
+close_out:
+// Allow users to close out and clear their local state
+int 1
+return
+
+update_app:
+// Only creator can update
+txn Sender
+global CreatorAddress
+==
+return
+
+delete_app:
+// Only creator can delete
+txn Sender
+global CreatorAddress
+==
+return
+
+no_op:
+// Route based on the first application argument
+txna ApplicationArgs 0
+byte "Grant"
+==
+bnz grant_consent
+
+txna ApplicationArgs 0
+byte "Revoke"
+==
+bnz revoke_consent
+
+err
+
+grant_consent:
+// Args: "Grant", OrgID (Key), JSONPayload (Value)
+txn NumAppArgs
+int 3
+==
+assert
+
+// Store in Sender's Local State
+// app_local_put takes 3 stacked arguments: account_index, key, value
+int 0 // 0 means Sender's account
+txna ApplicationArgs 1 // Key
+txna ApplicationArgs 2 // Value
+app_local_put
+
+int 1
+return
+
+revoke_consent:
+// Args: "Revoke", OrgID (Key)
+txn NumAppArgs
+int 2
+==
+assert
+
+// Delete from Sender's Local State
+// app_local_del takes 2 stacked arguments: account_index, key
+int 0 // Sender account index
+txna ApplicationArgs 1 // Key
+app_local_del
+
+int 1
+return
