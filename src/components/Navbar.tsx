@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, Menu, X, Wallet } from "lucide-react";
+import Image from "next/image";
+import { Menu, X, Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@txnlab/use-wallet-react";
@@ -42,11 +43,18 @@ export default function Navbar() {
                     <div className="flex items-center justify-between h-16">
                         {/* Logo Section */}
                         <div className="flex-shrink-0 flex items-center space-x-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                                <ShieldCheck className="w-5 h-5 text-white" />
-                            </div>
-                            <Link href="/" className="font-bold text-xl tracking-tight text-white hover:text-purple-400 transition-colors">
-                                ConsentChain
+                            <Link href="/" className="flex items-center space-x-2 group">
+                                <Image
+                                    src="/consentchain.gif"
+                                    alt="ConsentChain Logo"
+                                    width={36}
+                                    height={36}
+                                    className="rounded-lg object-contain bg-black p-1 shadow-lg shadow-purple-500/20 group-hover:shadow-purple-400/40 transition-shadow"
+                                    unoptimized
+                                />
+                                <span className="font-bold text-xl tracking-tight text-white group-hover:text-purple-400 transition-colors">
+                                    ConsentChain
+                                </span>
                             </Link>
                         </div>
 
