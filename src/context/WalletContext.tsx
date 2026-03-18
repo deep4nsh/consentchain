@@ -10,8 +10,7 @@ const walletManager = new WalletManager({
         WalletId.DEFLY,
         WalletId.LUTE,
         // Add MyAlgo or others if needed
-    ],
-    network: NetworkId.TESTNET,
+    ]
 });
 
 export function AppWalletProvider({ children }: { children: ReactNode }) {

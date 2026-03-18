@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, BadgeCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useWallet } from '@/context/WalletContext';
+import { useWallet } from '@txnlab/use-wallet-react';
 
 interface ConsentRecord {
     transactionId: string;
@@ -16,7 +16,7 @@ interface ConsentRecord {
 }
 
 export default function Dashboard() {
-    const { accountAddress } = useWallet();
+    const { activeAddress: accountAddress, signTransactions } = useWallet();
     const [mounted, setMounted] = useState(false);
 
     const [consents, setConsents] = useState<ConsentRecord[]>([]);
@@ -65,24 +65,18 @@ export default function Dashboard() {
 
             // STEP 2: Sign in Frontend Web3 Wallet
             const unsignedTxnsBase64 = buildData.txns as string[];
-            const algosdk = (await import('algosdk')).default;
-
-            const txnObjArray = unsignedTxnsBase64.map(b64 => {
-                const binaryTxn = new Uint8Array(Buffer.from(b64, 'base64'));
-                const txn = algosdk.decodeUnsignedTransaction(binaryTxn);
-                return { txn, signers: [accountAddress!] };
-            });
+            const uint8ArrayTxns = unsignedTxnsBase64.map(b64 => new Uint8Array(Buffer.from(b64, 'base64')));
 
             let signedTxnGroups;
             try {
-                // @ts-ignore
-                signedTxnGroups = await window.contextPeraWallet.signTransaction([txnObjArray]);
+                signedTxnGroups = await signTransactions(uint8ArrayTxns);
             } catch (err: any) {
-                throw err;
+                console.error(err);
+                throw new Error("Transaction signing failed or was rejected by user");
             }
 
             // STEP 3: Submit signed transactions
-            const base64SignedTxns = signedTxnGroups.map((arrIdx: any) => Buffer.from(arrIdx).toString('base64'));
+            const base64SignedTxns = signedTxnGroups.filter(Boolean).map((arrIdx: any) => Buffer.from(arrIdx).toString('base64'));
 
             const submitRes = await fetch('/api/consent/submit', {
                 method: 'POST',

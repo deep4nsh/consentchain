@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import ConsentCard from '@/components/ConsentCard';
 import TransactionReceipt from '@/components/TransactionReceipt';
 import { motion } from 'framer-motion';
-import { useWallet } from '@/context/WalletContext';
+import { useWallet } from '@txnlab/use-wallet-react';
 import { ORGANIZATIONS, DATA_SCOPES, PURPOSES, DURATIONS } from '@/lib/constants';
 export default function Home() {
-    const { accountAddress, signTransactions } = useWallet();
+    const { activeAddress: accountAddress, signTransactions } = useWallet();
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
