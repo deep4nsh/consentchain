@@ -5,17 +5,17 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 
 interface ReceiptProps {
-    txId: string;
+    transactionId: string;
     round: number;
     hash: string;
     timestamp: string;
 }
 
-export default function TransactionReceipt({ txId, round, hash, timestamp }: ReceiptProps) {
+export default function TransactionReceipt({ transactionId, round, hash, timestamp }: ReceiptProps) {
     const [copied, setCopied] = useState(false);
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(txId);
+        navigator.clipboard.writeText(transactionId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -59,10 +59,10 @@ export default function TransactionReceipt({ txId, round, hash, timestamp }: Rec
                         </button>
                     </div>
                     <p className="font-mono text-xs break-all text-white/90 leading-relaxed">
-                        {txId}
+                        {transactionId}
                     </p>
                     <a shrink-0
-                        href={`https://lora.algokit.io/testnet/transaction/${txId}`}
+                        href={`https://lora.algokit.io/testnet/transaction/${transactionId}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm mt-3 font-medium transition-colors"
