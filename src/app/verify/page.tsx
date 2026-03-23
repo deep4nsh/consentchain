@@ -65,6 +65,7 @@ export default function VerifyPortal() {
                     throw new Error(data.error || 'Failed to fetch consent records');
                 }
             } else {
+                console.log("Verification API Response:", data);
                 const consents: ConsentRecord[] = data.consents.map((c: any) => ({
                     id: c.transactionId,
                     organization: c.organization_id,
@@ -72,7 +73,7 @@ export default function VerifyPortal() {
                     purpose: c.purpose,
                     timestamp: c.consent_timestamp,
                     expiryDate: c.expiry_date,
-                    status: c.status
+                    status: c.status?.toUpperCase()
                 }));
 
                 // Filter consents for the selected organization
@@ -97,8 +98,9 @@ export default function VerifyPortal() {
         }
     };
 
-    const StatusBadge = ({ status }: { status?: 'ACTIVE' | 'REVOKED' | 'EXPIRED' }) => {
-        switch (status) {
+    const StatusBadge = ({ status }: { status?: string }) => {
+        const normalizedStatus = status?.toUpperCase();
+        switch (normalizedStatus) {
             case 'ACTIVE':
                 return (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -124,7 +126,7 @@ export default function VerifyPortal() {
                 return (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-slate-500/20 text-slate-400 border border-slate-500/30">
                         <ShieldAlert className="w-4 h-4 mr-2" />
-                        Unknown Status
+                        {status ? `Status: ${status}` : 'Unknown Status'}
                     </span>
                 );
         }

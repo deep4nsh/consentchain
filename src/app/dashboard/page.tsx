@@ -53,7 +53,7 @@ export default function Dashboard() {
             if (!data.success) {
                 throw new Error(data.error);
             }
-
+            console.log("Dashboard API Response:", data);
             setConsents(data.consents);
         } catch (err: any) {
             console.error("Dashboard error:", err);
@@ -185,10 +185,10 @@ export default function Dashboard() {
                         <motion.div
                             variants={itemVariants}
                             key={consent.transactionId}
-                            className={`glass-card transition-all p-8 group relative overflow-hidden rounded-[2rem] ${consent.status !== 'active' ? 'opacity-60 grayscale-[0.5]' : ''}`}
+                            className={`glass-card transition-all p-8 group relative overflow-hidden rounded-[2rem] ${consent.status?.toLowerCase() !== 'active' ? 'opacity-60 grayscale-[0.5]' : ''}`}
                         >
-                            <div className={`absolute top-0 left-0 w-1 h-full ${consent.status === 'active' ? 'bg-green-500'
-                                : consent.status === 'revoked' ? 'bg-red-500'
+                            <div className={`absolute top-0 left-0 w-1 h-full ${consent.status?.toLowerCase() === 'active' ? 'bg-green-500'
+                                : consent.status?.toLowerCase() === 'revoked' ? 'bg-red-500'
                                     : 'bg-gray-600'
                                 }`} />
 
