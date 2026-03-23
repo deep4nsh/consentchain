@@ -195,7 +195,7 @@ export default function BlogPage() {
                   <div className="p-6">
                     <div className="text-4xl font-black text-white/5 mb-4 border-b border-white/5 pb-4">01</div>
                     <h4 className="text-white font-medium mb-2">Connect Wallet</h4>
-                    <p className="text-sm text-gray-400">Head to the Demo page and link your Pera, Defly, or generic Algorand wallet securely.</p>
+                    <p className="text-sm text-gray-400">Head to the Portal and link your Pera, Defly, or generic Algorand wallet securely.</p>
                   </div>
                   <div className="p-6 bg-gradient-to-b from-transparent to-purple-900/10">
                     <div className="text-4xl font-black text-white/5 mb-4 border-b border-white/5 pb-4">02</div>
@@ -253,7 +253,7 @@ export default function BlogPage() {
             Take control of your digital identity today or integrate transparent consent into your organization's infrastructure.
           </p>
           <Link href="/demo" className="relative z-10 inline-flex items-center justify-center bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:shadow-lg hover:shadow-white/20 transition-all hover:-translate-y-1">
-            Try the Demo
+            Launch Portal
             <ArrowRight className="w-5 h-5 ml-2" />
           </Link>
         </motion.div>
