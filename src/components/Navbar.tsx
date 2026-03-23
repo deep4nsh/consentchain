@@ -10,6 +10,7 @@ import { useWallet } from "@txnlab/use-wallet-react";
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+    const [showAllWallets, setShowAllWallets] = useState(false);
 
     // @txnlab/use-wallet-react hooks
     const { activeAddress, wallets } = useWallet();
@@ -169,62 +170,135 @@ export default function Navbar() {
             {/* Wallet Selector Modal */}
             <AnimatePresence>
                 {isWalletModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="glass-card shadow-2xl w-full max-w-md flex flex-col overflow-hidden !bg-[#0d1117]/90"
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="bg-[#0a0a0c] border border-white/10 shadow-2xl w-full max-w-[340px] rounded-[2rem] overflow-hidden relative"
                         >
-                            <div className="px-8 py-6 flex items-center justify-between border-b border-white/10">
-                                <h3 className="text-xl font-bold text-white flex items-center">
-                                    <Wallet className="w-6 h-6 mr-3 text-blue-400" /> Connect Wallet
-                                </h3>
+                            {/* Decorative background glow */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-500/20 blur-[60px] pointer-events-none" />
+                            
+                            <div className="px-6 pt-8 pb-4 flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-white tracking-tight">Connect Wallet</h3>
                                 <button
-                                    onClick={() => setIsWalletModalOpen(false)}
-                                    className="p-1 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                                    onClick={() => {
+                                        setIsWalletModalOpen(false);
+                                        setShowAllWallets(false);
+                                    }}
+                                    className="p-2 rounded-full hover:bg-white/5 text-gray-500 hover:text-white transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-                            <div className="p-8 space-y-4">
-                                {wallets?.map((wallet) => (
-                                    <button
-                                        key={wallet.id}
-                                        onClick={() => {
-                                            if (wallet.isConnected) {
-                                                wallet.setActive();
-                                            } else {
-                                                wallet.connect();
-                                            }
-                                            setIsWalletModalOpen(false);
-                                        }}
-                                        className="w-full flex items-center justify-between p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-blue-500/50 transition-all group relative overflow-hidden"
-                                    >
-                                        <div className="flex items-center space-x-4 relative z-10">
-                                            {wallet.metadata?.icon && (
-                                                <div className="w-12 h-12 rounded-xl bg-black/40 p-2 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-full h-full object-contain" />
+
+                            <div className="px-6 pb-10">
+                                {!showAllWallets ? (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-4 mt-2">
+                                            {wallets?.slice(0, 4).map((wallet) => (
+                                                <button
+                                                    key={wallet.id}
+                                                    onClick={() => {
+                                                        if (wallet.isConnected) {
+                                                            wallet.setActive();
+                                                        } else {
+                                                            wallet.connect();
+                                                        }
+                                                        setIsWalletModalOpen(false);
+                                                    }}
+                                                    className="aspect-square flex flex-col items-center justify-center p-4 rounded-[1.5rem] bg-white/[0.03] border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.06] transition-all group relative"
+                                                >
+                                                    {wallet.metadata?.icon && (
+                                                        <div className="w-12 h-12 mb-2 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                            <img 
+                                                                src={wallet.metadata.icon} 
+                                                                alt={wallet.metadata.name} 
+                                                                className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider group-hover:text-blue-400 transition-colors">
+                                                        {wallet.metadata?.name || wallet.id}
+                                                    </span>
+                                                    {wallet.isConnected && (
+                                                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        
+                                        {wallets && wallets.length > 4 ? (
+                                            <button
+                                                onClick={() => setShowAllWallets(true)}
+                                                className="w-full mt-4 py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 text-xs font-bold text-gray-400 hover:text-white transition-all flex items-center justify-center space-x-2 group"
+                                            >
+                                                <span>More Wallets</span>
+                                                <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                                                    <span className="text-[10px] text-white">+</span>
                                                 </div>
-                                            )}
-                                            <div className="flex flex-col items-start">
-                                                <span className="font-bold text-lg text-white">
-                                                    {wallet.metadata?.name || wallet.id}
-                                                </span>
-                                                <span className="text-xs text-gray-400 uppercase tracking-widest font-semibold">
-                                                    {wallet.isConnected ? "Connected" : "Not Connected"}
-                                                </span>
+                                            </button>
+                                        ) : (wallets && wallets.length > 0 && wallets.length <= 4) ? (
+                                            <div className="mt-4 text-center">
+                                                <p className="text-[10px] text-gray-600 font-medium uppercase tracking-[0.2em]">Supported by Algorand</p>
                                             </div>
-                                        </div>
-                                        <div className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0">
-                                            {wallet.isConnected ? "Open" : "Connect"}
-                                        </div>
-                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    </button>
-                                ))}
+                                        ) : null}
+                                    </>
+                                ) : (
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="space-y-2 mt-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"
+                                    >
+                                        <button 
+                                            onClick={() => setShowAllWallets(false)}
+                                            className="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest mb-4 flex items-center"
+                                        >
+                                            ← Back to featured
+                                        </button>
+                                        {wallets?.map((wallet) => (
+                                            <button
+                                                key={wallet.id}
+                                                onClick={() => {
+                                                    if (wallet.isConnected) {
+                                                        wallet.setActive();
+                                                    } else {
+                                                        wallet.connect();
+                                                    }
+                                                    setIsWalletModalOpen(false);
+                                                }}
+                                                className="w-full flex items-center p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-blue-500/40 transition-all group"
+                                            >
+                                                {wallet.metadata?.icon && (
+                                                    <div className="w-8 h-8 mr-3 p-1 rounded-lg bg-black/20">
+                                                        <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-full h-full object-contain" />
+                                                    </div>
+                                                )}
+                                                <div className="flex flex-col items-start">
+                                                    <span className="font-bold text-sm text-white group-hover:text-blue-400 transition-colors">
+                                                        {wallet.metadata?.name || wallet.id}
+                                                    </span>
+                                                    {wallet.isConnected && (
+                                                        <span className="text-[9px] text-green-500 font-bold uppercase tracking-tight">Connected</span>
+                                                    )}
+                                                </div>
+                                                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </motion.div>
+                                )}
+
                                 {(!wallets || wallets.length === 0) && (
-                                    <div className="text-center text-sm text-gray-400 py-4">
-                                        No wallet providers found.
+                                    <div className="text-center py-8">
+                                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
+                                            <Wallet className="w-6 h-6 text-gray-600" />
+                                        </div>
+                                        <p className="text-sm text-gray-500 font-medium">No wallets found</p>
                                     </div>
                                 )}
                             </div>
