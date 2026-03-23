@@ -186,9 +186,15 @@ export default function Dashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-white tracking-wide">{consent.organization_id}</h3>
-                                            <a href={`https://lora.algokit.io/testnet/transaction/${consent.transactionId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 font-mono truncate max-w-[200px] sm:max-w-[300px] block">
-                                                Txn: {consent.transactionId.substring(0, 16)}...
-                                            </a>
+                                            {consent.transactionId !== 'SmartContractState' && consent.transactionId !== 'CorruptedState' ? (
+                                                <a href={`https://lora.algokit.io/testnet/transaction/${consent.transactionId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 font-mono truncate max-w-[200px] sm:max-w-[300px] block mt-1">
+                                                    Txn: {consent.transactionId.substring(0, 16)}...
+                                                </a>
+                                            ) : (
+                                                <span className="text-xs text-gray-500 font-mono truncate max-w-[200px] sm:max-w-[300px] block mt-1">
+                                                    Source: On-Chain State
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="ml-auto md:hidden">

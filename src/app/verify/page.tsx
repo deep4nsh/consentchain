@@ -44,7 +44,15 @@ export default function VerifyPortal() {
                     throw new Error(data.error || 'Failed to fetch consent records');
                 }
             } else {
-                const consents: ConsentRecord[] = data.consents;
+                const consents: ConsentRecord[] = data.consents.map((c: any) => ({
+                    id: c.transactionId,
+                    organization: c.organization_id,
+                    dataScopes: c.data_scope ? c.data_scope.split(',') : [],
+                    purpose: c.purpose,
+                    timestamp: c.consent_timestamp,
+                    expiryDate: c.expiry_date,
+                    status: c.status
+                }));
 
                 // Filter consents for the selected organization
                 const orgConsents = consents.filter(c => c.organization === selectedOrg);
@@ -217,14 +225,18 @@ export default function VerifyPortal() {
                                         </div>
                                         <div className="bg-black/30 rounded-xl p-4 border border-white/5">
                                             <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Transaction ID</div>
-                                            <a
-                                                href={`https://lora.algokit.io/testnet/transaction/${searchResult.latestConsent.id}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-400 hover:text-blue-300 truncate block font-mono text-sm"
-                                            >
-                                                {searchResult.latestConsent.id}
-                                            </a>
+                                            {searchResult.latestConsent.id !== 'SmartContractState' && searchResult.latestConsent.id !== 'CorruptedState' ? (
+                                                <a
+                                                    href={`https://lora.algokit.io/testnet/transaction/${searchResult.latestConsent.id}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-400 hover:text-blue-300 truncate block font-mono text-sm mt-1"
+                                                >
+                                                    {searchResult.latestConsent.id.substring(0, 16)}...
+                                                </a>
+                                            ) : (
+                                                <span className="text-gray-500 block font-mono text-sm mt-1">Source: On-Chain State</span>
+                                            )}
                                         </div>
                                         <div className="bg-black/30 rounded-xl p-4 border border-white/5">
                                             <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Granted On</div>

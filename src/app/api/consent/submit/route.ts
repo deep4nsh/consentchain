@@ -17,12 +17,15 @@ export async function POST(request: Request) {
         // Submit the transactions to the network
         const sendTxnResult = await algodClient.sendRawTransaction(decodedSignedTxns).do();
 
+        // Support both old and new SDK versions
+        const txIdStr = (sendTxnResult as any).txId || sendTxnResult.txid;
+
         // Wait for confirmation (optional, but good for returning guaranteed results)
-        const confirmation = await algosdk.waitForConfirmation(algodClient, sendTxnResult.txid, 4);
+        const confirmation = await algosdk.waitForConfirmation(algodClient, txIdStr, 4);
 
         return NextResponse.json({
             success: true,
-            transactionId: sendTxnResult.txid,
+            transactionId: txIdStr,
             round: Number(confirmation.confirmedRound),
             consentHash,
             timestamp: new Date().toISOString(),
