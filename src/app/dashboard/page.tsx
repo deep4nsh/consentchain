@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, BadgeCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useWallet } from '@txnlab/use-wallet-react';
+import { parseAlgorandError } from '@/lib/errorParser';
 
 interface ConsentRecord {
     transactionId: string;
@@ -42,7 +43,8 @@ export default function Dashboard() {
 
             setConsents(data.consents);
         } catch (err: any) {
-            setError(err.message);
+            console.error("Dashboard error:", err);
+            setError(parseAlgorandError(err));
         } finally {
             setLoading(false);
         }
@@ -184,7 +186,7 @@ export default function Dashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-white tracking-wide">{consent.organization_id}</h3>
-                                            <a href={`https://testnet.explorer.perawallet.app/tx/${consent.transactionId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 font-mono truncate max-w-[200px] sm:max-w-[300px] block">
+                                            <a href={`https://lora.algokit.io/testnet/transaction/${consent.transactionId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 font-mono truncate max-w-[200px] sm:max-w-[300px] block">
                                                 Txn: {consent.transactionId.substring(0, 16)}...
                                             </a>
                                         </div>

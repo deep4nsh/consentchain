@@ -6,6 +6,7 @@ import TransactionReceipt from '@/components/TransactionReceipt';
 import { motion } from 'framer-motion';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { ORGANIZATIONS, DATA_SCOPES, PURPOSES, DURATIONS } from '@/lib/constants';
+import { parseAlgorandError } from '@/lib/errorParser';
 export default function Home() {
     const { activeAddress: accountAddress, signTransactions } = useWallet();
     const [mounted, setMounted] = useState(false);
@@ -86,8 +87,8 @@ export default function Home() {
             setReceiptData(submitData);
             setStatus('success');
         } catch (err: any) {
-            console.error(err);
-            setError(err.message);
+            console.error("Raw Error:", err);
+            setError(parseAlgorandError(err));
             setStatus('pending');
         }
     };

@@ -218,7 +218,7 @@ export default function VerifyPortal() {
                                         <div className="bg-black/30 rounded-xl p-4 border border-white/5">
                                             <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Transaction ID</div>
                                             <a
-                                                href={`https://testnet.explorer.perawallet.app/tx/${searchResult.latestConsent.id}`}
+                                                href={`https://lora.algokit.io/testnet/transaction/${searchResult.latestConsent.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-400 hover:text-blue-300 truncate block font-mono text-sm"

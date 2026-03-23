@@ -62,7 +62,7 @@ export default function TransactionReceipt({ txId, round, hash, timestamp }: Rec
                         {txId}
                     </p>
                     <a shrink-0
-                        href={`https://testnet.explorer.perawallet.app/tx/${txId}`}
+                        href={`https://lora.algokit.io/testnet/transaction/${txId}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm mt-3 font-medium transition-colors"
