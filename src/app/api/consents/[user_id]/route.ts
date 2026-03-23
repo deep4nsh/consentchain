@@ -54,19 +54,31 @@ export async function GET(
             try {
                 const payload = JSON.parse(valueStr);
 
-                const isExpired = new Date(payload.exp) < new Date();
+                // Handle both old and compact (new) payload formats
+                const expiry = payload.e ? new Date(payload.e) : new Date(payload.exp);
+                const isExpired = expiry < new Date();
 
                 consents.push({
                     transactionId: 'SmartContractState', // No specific TX ID since it's current state
                     organization_id: orgId,
-                    data_scope: payload.scopes,
-                    purpose: payload.purpose,
+                    data_scope: payload.s || payload.scopes || '',
+                    purpose: payload.p || payload.purpose || '',
                     consent_timestamp: payload.timestamp || new Date().toISOString(), // Since we overwrite state, we might not have the original grant time if not stored.
-                    expiry_date: payload.exp,
+                    expiry_date: expiry.toISOString(),
                     status: isExpired ? 'expired' : 'active'
                 });
             } catch (err) {
                 console.error("Error parsing local state value JSON", valueStr);
+                // Return a corrupted record so the user can easily see it and revoke it
+                consents.push({
+                    transactionId: 'CorruptedState',
+                    organization_id: orgId,
+                    data_scope: 'CORRUPTED DATA',
+                    purpose: 'CORRUPTED DATA',
+                    consent_timestamp: new Date().toISOString(),
+                    expiry_date: new Date().toISOString(),
+                    status: 'expired'
+                });
             }
         }
 

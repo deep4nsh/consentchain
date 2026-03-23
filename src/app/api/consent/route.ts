@@ -2,10 +2,18 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import algosdk from 'algosdk';
 import { algodClient } from '@/lib/algorand';
+import rateLimit from '@/lib/rateLimit';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
 
 export async function POST(request: Request) {
+    // Basic Rate Limiting
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimitResult = rateLimit(ip, 10, 60000); // 10 requests per minute
+    if (!rateLimitResult.success) {
+        return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+    }
+
     try {
         const body = await request.json();
         const userAddress = body.user_id;
@@ -29,9 +37,14 @@ export async function POST(request: Request) {
         const keyBytes = new Uint8Array(Buffer.from(orgIdStr));
 
         // Ensure value is <= 128 bytes
-        let valueStr = JSON.stringify({ scopes: body.data_scope, purpose: body.purpose, exp: body.expiry_date });
-        if (valueStr.length > 128) valueStr = valueStr.substring(0, 128); // Truncate if necessary (rare for this simple data)
+        // Using compact keys: s (scopes), p (purpose), e (expiry as unix timestamp)
+        const expiryEpoch = new Date(body.expiry_date).getTime();
+        const valueStr = JSON.stringify({ s: body.data_scope, p: body.purpose, e: expiryEpoch });
+        
         const valueBytes = new Uint8Array(Buffer.from(valueStr));
+        if (valueBytes.length > 128) {
+            throw new Error(`Consent payload too large (${valueBytes.length} bytes). Max 128 bytes allowed. Please select fewer scopes.`);
+        }
 
         // 2. Prepare the Algorand transaction
         const suggestedParams = await algodClient.getTransactionParams().do();

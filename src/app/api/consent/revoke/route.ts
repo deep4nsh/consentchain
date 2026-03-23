@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 import algosdk from 'algosdk';
 import { algodClient } from '@/lib/algorand';
+import rateLimit from '@/lib/rateLimit';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
 
 export async function POST(request: Request) {
+    // Basic Rate Limiting
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimitResult = rateLimit(ip, 10, 60000); // 10 requests per minute
+    if (!rateLimitResult.success) {
+        return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+    }
+
     try {
         const { user_id, organization_id } = await request.json();
 

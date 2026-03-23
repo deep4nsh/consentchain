@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ConsentChain 🧬
+
+ConsentChain is a decentralized consent management application built for **AlgoBharat**. It empowers users to transparently grant, track, and revoke consent for their personal data, using cryptographic proofs on the Algorand blockchain.
+
+## Live Demo
+The application is configured to run on the **Algorand Testnet**. 
+
+## Features
+- **Immutable Audit Trails**: Every consent grant and revocation is recorded as a transaction on Algorand.
+- **Application-Layer Expiry**: Access is duration-based. The application continuously verifies the consent timestamp against its expiry to deny access automatically when time runs out.
+- **Granular Scopes**: Define explicit data scopes (e.g. `medical_history`, `vitals`) and purposes instead of blanket permissions.
+- **Zero-Trust UI**: Check real-time on-chain status in the verification portal.
 
 ## Getting Started
 
-First, run the development server:
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Copy environment variables:
+   ```bash
+   cp .env.example .env.local
+   # Ensure NEXT_PUBLIC_APP_ID is set to your deployed Smart Contract ID
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Architectural Decisions for MVP
+For this hackathon MVP, we prioritized extreme speed and simplicity over boundless scalability. 
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Algorand Local State Limits**: The TEAL smart contract stores consent mapping payloads strictly in the User's Local State. By Algorand protocol design, this inherently restricts each user's account to a maximum of **16 different organizations**. Trying to grant consent to a 17th organization will fail. For a production V2, this contract would be migrated to **Box Storage (AVM 8+)** to allow unbounded mappings.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**JSON Payload Compression**: Because Algorand Local state caps byte-slice values at exactly 128 bytes, all consent JSON payloads are heavily compressed into 1-letter keys (`s`, `p`, `e`) and Unix timestamps before submission.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+- Next.js 15 (React 19)
+- Tailwind CSS
+- Algorand SDK (`algosdk`)
+- TEAL (Smart Contracts)
+- Pera Wallet Integrations

@@ -93,7 +93,7 @@ export default function LandingPage() {
             <FeatureCard
               icon={<FileLock2 className="w-8 h-8 text-purple-400" />}
               title="Time-Bound Access"
-              description="Consent is strictly duration-based. Once the expiry is met, access is cryptographically revoked—no manual intervention needed."
+              description="Consent is strictly duration-based. Once the expiry is met, access is automatically disabled at the application layer—no manual intervention needed."
             />
             <FeatureCard
               icon={<Database className="w-8 h-8 text-indigo-400" />}
