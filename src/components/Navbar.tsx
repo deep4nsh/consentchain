@@ -39,9 +39,9 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-md border-b border-white/10">
+            <nav className="fixed top-0 left-0 right-0 z-50 glass-card !rounded-none !border-t-0 !border-x-0 backdrop-blur-xl">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
+                    <div className="flex items-center justify-between h-20">
                         {/* Logo Section */}
                         <div className="flex-shrink-0 flex items-center space-x-2">
                             <Link href="/" className="flex items-center space-x-2 group">
@@ -66,9 +66,10 @@ export default function Navbar() {
                                     <Link
                                         key={link.name}
                                         href={link.href}
-                                        className="text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all"
+                                        className="text-gray-400 hover:text-white px-3 py-2 rounded-lg text-sm font-medium transition-all relative group"
                                     >
                                         {link.name}
+                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all group-hover:w-full" />
                                     </Link>
                                 ))}
                                 <div className="flex items-center space-x-4 pl-4 border-l border-white/10">
@@ -87,7 +88,7 @@ export default function Navbar() {
                                     ) : (
                                         <button
                                             onClick={() => setIsWalletModalOpen(true)}
-                                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all hover:-translate-y-0.5"
+                                            className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] transition-all hover:scale-105 active:scale-95"
                                         >
                                             Connect Wallet
                                         </button>
@@ -170,14 +171,14 @@ export default function Navbar() {
                 {isWalletModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col"
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="glass-card shadow-2xl w-full max-w-md flex flex-col overflow-hidden !bg-[#0d1117]/90"
                         >
-                            <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 bg-white/5">
-                                <h3 className="text-lg font-semibold text-white flex items-center">
-                                    <Wallet className="w-5 h-5 mr-2 text-purple-400" /> Connect a Wallet
+                            <div className="px-8 py-6 flex items-center justify-between border-b border-white/10">
+                                <h3 className="text-xl font-bold text-white flex items-center">
+                                    <Wallet className="w-6 h-6 mr-3 text-blue-400" /> Connect Wallet
                                 </h3>
                                 <button
                                     onClick={() => setIsWalletModalOpen(false)}
@@ -186,7 +187,7 @@ export default function Navbar() {
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-                            <div className="p-6 space-y-3">
+                            <div className="p-8 space-y-4">
                                 {wallets?.map((wallet) => (
                                     <button
                                         key={wallet.id}
@@ -198,20 +199,27 @@ export default function Navbar() {
                                             }
                                             setIsWalletModalOpen(false);
                                         }}
-                                        className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-purple-500/50 transition-all group"
+                                        className="w-full flex items-center justify-between p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-blue-500/50 transition-all group relative overflow-hidden"
                                     >
-                                        <div className="flex items-center space-x-3">
-                                            {/* Wallet Icon (Using generic or parsing it based on use-wallet) */}
+                                        <div className="flex items-center space-x-4 relative z-10">
                                             {wallet.metadata?.icon && (
-                                                <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-8 h-8 rounded-md" />
+                                                <div className="w-12 h-12 rounded-xl bg-black/40 p-2 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                    <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-full h-full object-contain" />
+                                                </div>
                                             )}
-                                            <span className="font-medium text-gray-200 group-hover:text-white">
-                                                {wallet.metadata?.name || wallet.id}
-                                            </span>
+                                            <div className="flex flex-col items-start">
+                                                <span className="font-bold text-lg text-white">
+                                                    {wallet.metadata?.name || wallet.id}
+                                                </span>
+                                                <span className="text-xs text-gray-400 uppercase tracking-widest font-semibold">
+                                                    {wallet.isConnected ? "Connected" : "Not Connected"}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="text-xs font-semibold px-2 py-1 rounded bg-black/50 text-gray-400 border border-white/5 group-hover:bg-purple-500/20 group-hover:text-purple-300">
-                                            {wallet.isConnected ? "Connected" : "Connect"}
+                                        <div className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0">
+                                            {wallet.isConnected ? "Open" : "Connect"}
                                         </div>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </button>
                                 ))}
                                 {(!wallets || wallets.length === 0) && (

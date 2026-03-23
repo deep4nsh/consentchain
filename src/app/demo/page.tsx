@@ -8,6 +8,19 @@ import { useWallet } from '@txnlab/use-wallet-react';
 import { ORGANIZATIONS, DATA_SCOPES, PURPOSES, DURATIONS } from '@/lib/constants';
 import { parseAlgorandError } from '@/lib/errorParser';
 export default function Home() {
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    };
+
     const { activeAddress: accountAddress, signTransactions } = useWallet();
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
@@ -103,14 +116,19 @@ export default function Home() {
     };
 
     return (
-        <main className="min-h-screen flex flex-col items-center justify-center p-4 pt-20">
+        <motion.main 
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="min-h-screen flex flex-col items-center justify-center p-4 pt-20"
+        >
             {/* Header Logo */}
-            <div className="absolute top-20 left-8 flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <span className="font-bold text-white leading-none">C</span>
+            <motion.div variants={itemVariants} className="absolute top-24 left-8 hidden md:flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <span className="font-bold text-white text-xl">C</span>
                 </div>
-                <span className="font-bold text-xl tracking-tight">ConsentChain Demo</span>
-            </div>
+                <span className="font-bold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">ConsentChain Portal</span>
+            </motion.div>
 
             {error && (
                 <motion.div
@@ -133,33 +151,31 @@ export default function Home() {
             )}
 
             {status !== 'success' ? (
-                <ConsentCard
-                    organizations={ORGANIZATIONS}
-                    dataScopes={DATA_SCOPES}
-                    purposes={PURPOSES}
-                    durations={DURATIONS}
-                    selectedOrganization={selectedOrganization}
-                    onOrganizationChange={setSelectedOrganization}
-                    selectedScopes={selectedScopes}
-                    onScopeToggle={handleScopeToggle}
-                    selectedPurpose={selectedPurpose}
-                    onPurposeChange={setSelectedPurpose}
-                    selectedDuration={selectedDuration}
-                    onDurationChange={setSelectedDuration}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
-                    isLoading={status === 'processing'}
-                    isWalletConnected={!!accountAddress}
-                />
+                <motion.div variants={itemVariants}>
+                    <ConsentCard
+                        organizations={ORGANIZATIONS}
+                        dataScopes={DATA_SCOPES}
+                        purposes={PURPOSES}
+                        durations={DURATIONS}
+                        selectedOrganization={selectedOrganization}
+                        onOrganizationChange={setSelectedOrganization}
+                        selectedScopes={selectedScopes}
+                        onScopeToggle={handleScopeToggle}
+                        selectedPurpose={selectedPurpose}
+                        onPurposeChange={setSelectedPurpose}
+                        selectedDuration={selectedDuration}
+                        onDurationChange={setSelectedDuration}
+                        onAccept={handleAccept}
+                        onDecline={handleDecline}
+                        isLoading={status === 'processing'}
+                        isWalletConnected={!!accountAddress}
+                    />
+                </motion.div>
             ) : (
-                <TransactionReceipt {...receiptData} />
+                <motion.div variants={itemVariants}>
+                    <TransactionReceipt {...receiptData} />
+                </motion.div>
             )}
-
-            {/* Background decoration */}
-            <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-                <div className="absolute top-[20%] left-[20%] w-96 h-96 bg-purple-500/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[20%] right-[20%] w-96 h-96 bg-blue-500/10 rounded-full blur-[120px]" />
-            </div>
-        </main>
+        </motion.main>
     );
 }

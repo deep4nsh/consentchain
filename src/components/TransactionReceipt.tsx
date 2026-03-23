@@ -27,80 +27,87 @@ export default function TransactionReceipt({ transactionId, round, hash, timesta
             transition={{ duration: 0.5, type: 'spring' }}
             className="glass-card rounded-2xl p-8 max-w-lg w-full relative overflow-hidden text-left"
         >
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500" />
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400" />
 
             <div className="flex flex-col items-center justify-center mb-8">
                 <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, type: 'spring' }}
+                    transition={{ delay: 0.2, type: 'spring', damping: 12 }}
+                    className="relative"
                 >
-                    <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-4" />
+                    <div className="absolute inset-0 bg-emerald-400/20 blur-2xl rounded-full" />
+                    <CheckCircle2 className="w-20 h-20 text-emerald-400 mb-4 relative z-10" />
                 </motion.div>
-                <h2 className="text-2xl font-bold text-center">Consent Recorded</h2>
-                <p className="text-emerald-400 text-sm mt-1 font-medium bg-emerald-400/10 px-3 py-1 rounded-full">
-                    Verified on Algorand TestNet
-                </p>
+                <h2 className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Consent Recorded</h2>
+                <div className="flex items-center space-x-2 mt-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">
+                        Verified on Algorand TestNet
+                    </p>
+                </div>
             </div>
 
             <div className="space-y-4">
                 {/* Transaction ID */}
-                <div className="p-4 rounded-xl bg-black/40 border border-white/5 group">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2 text-sm text-gray-400">
-                            <Hash className="w-4 h-4" />
+                <div className="p-5 rounded-2xl bg-black/40 border border-white/10 group transition-all hover:border-emerald-500/30">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                            <Hash className="w-4 h-4 text-emerald-400/70" />
                             <span>Transaction ID</span>
                         </div>
                         <button
                             onClick={copyToClipboard}
-                            className="text-gray-400 hover:text-white transition-colors"
+                            className="text-gray-400 hover:text-white transition-all transform active:scale-90"
                         >
-                            {copied ? <span className="text-emerald-400 text-xs font-medium">Copied!</span> : <Copy className="w-4 h-4" />}
+                            {copied ? <span className="text-emerald-400 text-xs font-bold">COPIED!</span> : <Copy className="w-4 h-4" />}
                         </button>
                     </div>
-                    <p className="font-mono text-xs break-all text-white/90 leading-relaxed">
+                    <p className="font-mono text-[11px] break-all text-white/90 leading-relaxed font-medium">
                         {transactionId}
                     </p>
-                    <a shrink-0
-                        href={`https://lora.algokit.io/testnet/transaction/${transactionId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm mt-3 font-medium transition-colors"
-                    >
-                        <span>View on Explorer</span>
-                        <ExternalLink className="w-4 h-4" />
-                    </a>
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                        <a
+                            href={`https://lora.algokit.io/testnet/transaction/${transactionId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm font-semibold transition-colors group"
+                        >
+                            <span>Explore on Blockchain</span>
+                            <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </a>
+                    </div>
                 </div>
 
                 {/* Data Hash */}
-                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                    <div className="flex items-center space-x-2 text-sm text-gray-400 mb-1">
-                        <FileText className="w-4 h-4" />
-                        <span>Cryptographic Payload Hash</span>
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                    <div className="flex items-center space-x-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                        <FileText className="w-4 h-4 text-blue-400/70" />
+                        <span>Cryptographic Hash</span>
                     </div>
-                    <p className="font-mono text-xs break-all text-gray-300">
+                    <p className="font-mono text-[10px] break-all text-gray-400 leading-tight">
                         {hash}
                     </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                        <div className="flex items-center space-x-2 text-sm text-gray-400 mb-1">
-                            <Server className="w-4 h-4" />
-                            <span>Block Round</span>
+                    <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                        <div className="flex items-center space-x-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                            <Server className="w-4 h-4 text-purple-400/70" />
+                            <span>Block</span>
                         </div>
-                        <p className="font-mono text-sm text-white">
+                        <p className="font-mono text-lg font-bold text-white leading-none">
                             {round}
                         </p>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                        <div className="flex items-center space-x-2 text-sm text-gray-400 mb-1">
-                            <Clock className="w-4 h-4" />
-                            <span>Timestamp</span>
+                    <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+                        <div className="flex items-center space-x-2 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                            <Clock className="w-4 h-4 text-amber-400/70" />
+                            <span>Time</span>
                         </div>
-                        <p className="font-mono text-sm text-white truncate" title={timestamp}>
-                            {new Date(timestamp).toLocaleTimeString()}
+                        <p className="font-mono text-lg font-bold text-white leading-none truncate" title={timestamp}>
+                            {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                     </div>
                 </div>
@@ -108,11 +115,10 @@ export default function TransactionReceipt({ transactionId, round, hash, timesta
 
             <button
                 onClick={() => window.location.reload()}
-                className="w-full mt-8 py-3 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
+                className="w-full mt-8 py-4 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] border border-white/10"
             >
                 Done
             </button>
         </motion.div>
     );
 }
-

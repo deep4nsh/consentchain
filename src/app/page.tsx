@@ -19,14 +19,7 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen pt-20 pb-12 overflow-x-hidden relative flex flex-col items-center">
-      {/* Background decoration */}
-      <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-gray-950">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] right-[-10%] w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[150px]" />
-        <div className="absolute bottom-[-20%] left-[20%] w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[150px]" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-      </div>
+    <main className="min-h-screen pt-28 pb-12 overflow-x-hidden relative flex flex-col items-center">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-10 md:mt-20">
         <motion.div
@@ -61,7 +54,7 @@ export default function LandingPage() {
             <Link href="/demo" className="w-full sm:w-auto px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)] hover:bg-gray-100 hover:scale-105 transition-all flex items-center justify-center gap-2">
               Try the App <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 rounded-full font-semibold text-lg hover:bg-white/10 transition-all text-white flex items-center justify-center">
+            <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 glass-card rounded-full font-semibold text-lg hover:bg-white/5 transition-all text-white flex items-center justify-center">
               User Dashboard
             </Link>
           </motion.div>
@@ -103,7 +96,6 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
-        {/* Why it is required */}
         <motion.div
           id="why-needed"
           initial="hidden"
@@ -112,7 +104,7 @@ export default function LandingPage() {
           variants={containerVariants}
           className="mt-32 md:mt-48 mb-20"
         >
-          <motion.div variants={itemVariants} className="bg-white/[0.03] border border-white/10 rounded-3xl p-8 md:p-16 backdrop-blur-md relative overflow-hidden">
+          <motion.div variants={itemVariants} className="glass-card rounded-3xl p-8 md:p-16 relative overflow-hidden">
 
             <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
@@ -165,7 +157,7 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
-    <div className="bg-white/[0.02] border border-white-[0.05] hover:bg-white/[0.04] hover:border-white/10 transition-all p-8 rounded-2xl group flex flex-col items-start backdrop-blur-sm">
+    <div className="glass-card transition-all p-8 rounded-2xl group flex flex-col items-start">
       <div className="p-3 bg-white/5 rounded-xl mb-6 group-hover:scale-110 group-hover:bg-white/10 transition-all">
         {icon}
       </div>

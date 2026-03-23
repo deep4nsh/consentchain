@@ -56,82 +56,105 @@ export default function ConsentCard({
 
             <div className="space-y-4 mb-8">
                 {/* Organization Setup */}
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4 transition-all hover:border-white/20">
                     <div className="flex items-center space-x-2">
-                        <Building2 className="w-5 h-5 text-gray-400" />
-                        <p className="text-sm font-medium text-gray-300">Requesting Organization</p>
+                        <Building2 className="w-5 h-5 text-indigo-400" />
+                        <p className="text-sm font-semibold text-gray-300">Requesting Organization</p>
                     </div>
-                    <select
-                        value={selectedOrganization}
-                        onChange={(e) => onOrganizationChange(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
-                    >
-                        <option value="" disabled>Select an Organization</option>
-                        {organizations.map(org => (
-                            <option key={org.id} value={org.id}>{org.name}</option>
-                        ))}
-                    </select>
+                    <div className="relative">
+                        <select
+                            value={selectedOrganization}
+                            onChange={(e) => onOrganizationChange(e.target.value)}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                        >
+                            <option value="" disabled className="bg-slate-900">Select an Organization</option>
+                            {organizations.map(org => (
+                                <option key={org.id} value={org.id} className="bg-slate-900">{org.name}</option>
+                            ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Data Scopes Setup */}
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4 transition-all hover:border-white/20">
                     <div className="flex items-center space-x-2">
-                        <FileText className="w-5 h-5 text-gray-400" />
-                        <p className="text-sm font-medium text-gray-300">Data Scopes</p>
+                        <FileText className="w-5 h-5 text-blue-400" />
+                        <p className="text-sm font-semibold text-gray-300">Data Scopes</p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 gap-2.5">
                         {dataScopes.map((scope) => {
                             const isSelected = selectedScopes.includes(scope.id);
                             return (
-                                <div
+                                <motion.div
                                     key={scope.id}
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.99 }}
                                     onClick={() => onScopeToggle(scope.id)}
-                                    className={`flex items-center space-x-3 p-2.5 rounded-lg border cursor-pointer transition-colors ${isSelected ? 'bg-blue-500/10 border-blue-500/30' : 'bg-black/20 border-white/5 hover:border-white/20'}`}
+                                    className={`flex items-center space-x-3 p-3.5 rounded-xl border cursor-pointer transition-all ${isSelected ? 'glass-card border-blue-500/50 bg-blue-500/10' : 'bg-black/20 border-white/5 hover:border-white/20'}`}
                                 >
                                     <div className="text-blue-400">
-                                        {isSelected ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5 opacity-50" />}
+                                        {isSelected ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5 opacity-30" />}
                                     </div>
-                                    <span className={`text-sm ${isSelected ? 'text-white' : 'text-gray-400'}`}>{scope.label}</span>
-                                </div>
+                                    <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-400'}`}>{scope.label}</span>
+                                </motion.div>
                             );
                         })}
                     </div>
                 </div>
 
                 {/* Duration & Purpose Setup */}
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
-                    <div className="space-y-3">
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-6 transition-all hover:border-white/20">
+                    <div className="space-y-4">
                         <div className="flex items-center space-x-2">
-                            <Clock className="w-5 h-5 text-gray-400" />
-                            <p className="text-sm font-medium text-gray-300">Duration</p>
+                            <Clock className="w-5 h-5 text-amber-400" />
+                            <p className="text-sm font-semibold text-gray-300">Validity Duration</p>
                         </div>
-                        <select
-                            value={selectedDuration}
-                            onChange={(e) => onDurationChange(Number(e.target.value))}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
-                        >
-                            <option value={0} disabled>Select Duration</option>
-                            {durations.map(dur => (
-                                <option key={dur.value} value={dur.value}>{dur.label}</option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={selectedDuration}
+                                onChange={(e) => onDurationChange(Number(e.target.value))}
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                            >
+                                <option value={0} disabled className="bg-slate-900">Select Duration</option>
+                                {durations.map(dur => (
+                                    <option key={dur.value} value={dur.value} className="bg-slate-900">{dur.label}</option>
+                                ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="space-y-3 pt-2 border-t border-white/10">
+                    <div className="space-y-4 pt-4 border-t border-white/10">
                         <div className="flex items-center space-x-2">
-                            <FileText className="w-5 h-5 text-gray-400" />
-                            <p className="text-sm font-medium text-gray-300">Purpose of Processing</p>
+                            <FileText className="w-5 h-5 text-emerald-400" />
+                            <p className="text-sm font-semibold text-gray-300">Purpose of Processing</p>
                         </div>
-                        <select
-                            value={selectedPurpose}
-                            onChange={(e) => onPurposeChange(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
-                        >
-                            <option value="" disabled>Select Purpose</option>
-                            {purposes.map(purp => (
-                                <option key={purp.id} value={purp.id}>{purp.label}</option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={selectedPurpose}
+                                onChange={(e) => onPurposeChange(e.target.value)}
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                            >
+                                <option value="" disabled className="bg-slate-900">Select Purpose</option>
+                                {purposes.map(purp => (
+                                    <option key={purp.id} value={purp.id} className="bg-slate-900">{purp.label}</option>
+                                ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,14 +163,14 @@ export default function ConsentCard({
                 <button
                     onClick={onDecline}
                     disabled={isLoading}
-                    className="flex-1 py-3 px-4 rounded-xl border border-white/10 hover:bg-white/5 transition-colors disabled:opacity-50"
+                    className="flex-1 py-4 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-gray-300 font-medium transition-all active:scale-95 disabled:opacity-50"
                 >
                     Cancel
                 </button>
                 <button
                     onClick={onAccept}
                     disabled={isLoading || !isWalletConnected || !selectedOrganization || selectedScopes.length === 0 || !selectedPurpose || selectedDuration === 0}
-                    className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-4 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isLoading ? (
                         <span className="flex items-center justify-center">
