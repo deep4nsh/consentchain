@@ -179,7 +179,7 @@ export default function Navbar() {
                         >
                             {/* Decorative background glow */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-500/20 blur-[60px] pointer-events-none" />
-                            
+
                             <div className="px-6 pt-8 pb-4 flex items-center justify-between">
                                 <h3 className="text-lg font-bold text-white tracking-tight">Connect Wallet</h3>
                                 <button
@@ -212,10 +212,10 @@ export default function Navbar() {
                                                 >
                                                     {wallet.metadata?.icon && (
                                                         <div className="w-12 h-12 mb-2 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                                            <img 
-                                                                src={wallet.metadata.icon} 
-                                                                alt={wallet.metadata.name} 
-                                                                className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
+                                                            <img
+                                                                src={wallet.metadata.icon}
+                                                                alt={wallet.metadata.name}
+                                                                className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]"
                                                             />
                                                         </div>
                                                     )}
@@ -228,7 +228,7 @@ export default function Navbar() {
                                                 </button>
                                             ))}
                                         </div>
-                                        
+
                                         {wallets && wallets.length > 4 ? (
                                             <button
                                                 onClick={() => setShowAllWallets(true)}
@@ -246,12 +246,12 @@ export default function Navbar() {
                                         ) : null}
                                     </>
                                 ) : (
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         className="space-y-2 mt-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"
                                     >
-                                        <button 
+                                        <button
                                             onClick={() => setShowAllWallets(false)}
                                             className="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest mb-4 flex items-center"
                                         >
