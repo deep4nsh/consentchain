@@ -83,12 +83,13 @@ int 3
 ==
 assert
 
-// Store in Sender's Local State
-// app_local_put takes 3 stacked arguments: account_index, key, value
-int 0 // 0 means Sender's account
-txna ApplicationArgs 1 // Key
-txna ApplicationArgs 2 // Value
-app_local_put
+// Store in Box Storage (Scalable)
+// Box Key: Sender Address (32 bytes) + OrgID
+txn Sender
+txna ApplicationArgs 1
+concat // Combine Sender and OrgID for unique box name
+txna ApplicationArgs 2
+box_put
 
 int 1
 return
@@ -100,11 +101,12 @@ int 2
 ==
 assert
 
-// Delete from Sender's Local State
-// app_local_del takes 2 stacked arguments: account_index, key
-int 0 // Sender account index
-txna ApplicationArgs 1 // Key
-app_local_del
+// Delete from Box Storage
+txn Sender
+txna ApplicationArgs 1
+concat
+box_del
+pop // box_del returns 1 if deleted, 0 if not found. Popping to ignore.
 
 int 1
 return

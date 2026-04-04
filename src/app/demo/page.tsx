@@ -134,9 +134,14 @@ export default function Home() {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-3 rounded-xl mb-8 max-w-lg w-full text-center"
+                    className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-xl mb-8 max-w-lg w-full text-center leading-relaxed"
                 >
-                    {error}
+                    <div dangerouslySetInnerHTML={{ 
+                        __html: error.replace(
+                            /(https?:\/\/[^\s]+)/g, 
+                            '<a href="$1" target="_blank" rel="noopener noreferrer" class="underline hover:text-white transition-colors">$1</a>'
+                        ) 
+                    }} />
                 </motion.div>
             )}
 

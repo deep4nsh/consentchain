@@ -48,7 +48,38 @@ export default function TransactionReceipt({ transactionId, round, hash, timesta
                 </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
+                {/* Visual Timeline */}
+                <div className="relative flex justify-between items-center px-4 py-8 bg-white/5 rounded-2xl border border-white/5">
+                    <div className="absolute top-1/2 left-[10%] right-[10%] h-[2px] bg-white/10 -translate-y-1/2" />
+                    <div className="absolute top-1/2 left-[10%] w-[80%] h-[2px] bg-gradient-to-r from-emerald-500 to-cyan-500 -translate-y-1/2 origin-left scale-x-0 animate-[scaleX_1.5s_ease-out_forwards]" />
+                    
+                    {[
+                        { label: 'Broadcast', delay: 0 },
+                        { label: 'Validated', delay: 0.5 },
+                        { label: 'Committed', delay: 1 }
+                    ].map((step, i) => (
+                        <div key={step.label} className="relative z-10 flex flex-col items-center">
+                            <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: step.delay, type: 'spring' }}
+                                className="w-8 h-8 rounded-full bg-slate-900 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-bold text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                            >
+                                {i + 1}
+                            </motion.div>
+                            <motion.span 
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: step.delay + 0.2 }}
+                                className="absolute -bottom-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap"
+                            >
+                                {step.label}
+                            </motion.span>
+                        </div>
+                    ))}
+                </div>
+
                 {/* Transaction ID */}
                 <div className="p-5 rounded-2xl bg-black/40 border border-white/10 group transition-all hover:border-emerald-500/30">
                     <div className="flex items-center justify-between mb-3">

@@ -4,9 +4,10 @@ export interface Purpose { id: string; label: string }
 export interface Duration { value: number; label: string }
 
 export const ORGANIZATIONS: Organization[] = [
-    { id: 'ORG001', name: 'HealthPlus Research' },
-    { id: 'ORG002', name: 'Global Finance Corp' },
-    { id: 'ORG003', name: 'City Transport Authority' },
+    { id: 'apollo_hospitals', name: 'Apollo Hospitals Group' },
+    { id: 'icici_bank', name: 'ICICI Bank Ltd' },
+    { id: 'zomato_health', name: 'Zomato Health & Safety' },
+    { id: 'indiamart', name: 'IndiaMART B2B Net' },
 ];
 
 export const DATA_SCOPES: DataScope[] = [

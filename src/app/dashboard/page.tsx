@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, BadgeCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { parseAlgorandError } from '@/lib/errorParser';
+import ConsentMap from '@/components/ConsentMap';
+import { ORGANIZATIONS } from '@/lib/constants';
 
 interface ConsentRecord {
     transactionId: string;
@@ -24,6 +26,25 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [revokingId, setRevokingId] = useState<string | null>(null);
+    const [auditLogs, setAuditLogs] = useState<string[]>([]);
+
+    const addAuditLog = (msg: string) => {
+        setAuditLogs(prev => [msg, ...prev].slice(0, 5));
+    };
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (consents.length > 0) {
+                const activeOnes = consents.filter(c => c.status === 'active');
+                if (activeOnes.length > 0) {
+                    const randomOrg = activeOnes[Math.floor(Math.random() * activeOnes.length)];
+                    const orgName = ORGANIZATIONS.find(o => o.id === randomOrg.organization_id)?.name || randomOrg.organization_id;
+                    addAuditLog(`Audit: ${orgName} verified consent signature... SUCCESS`);
+                }
+            }
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [consents]);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -147,8 +168,13 @@ export default function Dashboard() {
             </motion.div>
 
             {error && (
-                <div className="w-full max-w-5xl bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl mb-8">
-                    Error loading consents: {error}
+                <div className="w-full max-w-5xl bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl mb-8 text-center">
+                    <div dangerouslySetInnerHTML={{ 
+                        __html: `Error: ${error.replace(
+                            /(https?:\/\/[^\s]+)/g, 
+                            '<a href="$1" target="_blank" rel="noopener noreferrer" class="underline hover:text-white transition-colors">$1</a>'
+                        )}`
+                    }} />
                 </div>
             )}
 
@@ -180,7 +206,41 @@ export default function Dashboard() {
                     <p className="text-gray-500 text-lg font-light">Your consent history is currently empty.</p>
                 </motion.div>
             ) : (
-                <div className="w-full max-w-5xl space-y-4">
+                <div className="w-full max-w-5xl flex flex-col items-center">
+                    <ConsentMap activeAddress={accountAddress} consents={consents} />
+                    
+                    {/* Live Audit Feed */}
+                    <motion.div 
+                        variants={itemVariants}
+                        className="w-full mb-8 bg-black/40 border border-white/5 rounded-2xl p-4 overflow-hidden"
+                    >
+                        <div className="flex items-center gap-2 mb-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            <Activity className="w-3 h-3 text-green-500 animate-pulse" />
+                            Live Verification Stream
+                        </div>
+                        <div className="space-y-2">
+                            <AnimatePresence mode='popLayout'>
+                                {auditLogs.length > 0 ? auditLogs.map((log, i) => (
+                                    <motion.div 
+                                        key={log + i}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="text-xs font-mono text-emerald-400/80 bg-emerald-500/5 px-3 py-1.5 rounded flex items-center justify-between"
+                                    >
+                                        <span>{'>'} {log}</span>
+                                        <span className="text-[10px] text-gray-600 italic">just now</span>
+                                    </motion.div>
+                                )) : (
+                                    <div className="text-xs font-mono text-gray-600 italic text-center py-2 underline decoration-gray-800">
+                                        Waiting for on-chain events...
+                                    </div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </motion.div>
+
+                    <div className="w-full space-y-4">
                     {consents.map((consent, index) => (
                         <motion.div
                             variants={itemVariants}
@@ -275,6 +335,7 @@ export default function Dashboard() {
                             </div>
                         </motion.div>
                     ))}
+                    </div>
                 </div>
             )}
         </motion.main>

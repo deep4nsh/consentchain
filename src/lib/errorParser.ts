@@ -6,7 +6,7 @@ export function parseAlgorandError(error: any, defaultMessage: string = "An unex
         return "Insufficient ALGO to pay the transaction fees. Please fund your wallet using the Testnet Faucet.";
     }
     if (lowerError.includes('below min')) {
-         return "Your wallet balance would drop below the minimum required balance. Please add more Testnet ALGO.";
+         return "Your wallet balance would drop below the minimum required balance. Please add more Testnet ALGO from the faucet: https://bank.testnet.algorand.network/";
     }
     if (lowerError.includes('invalid mainnet genesis')) {
         return "Your wallet is connected to Mainnet but the app is on Testnet. Please switch your wallet network to Testnet.";
@@ -19,7 +19,7 @@ export function parseAlgorandError(error: any, defaultMessage: string = "An unex
     }
     if (lowerError.includes('logic eval error')) {
         if (lowerError.includes('assert failed')) {
-            return "Smart contract assertion failed. You might have reached the maximum number of organizations (16) allowed for this MVP.";
+            return "Smart contract assertion failed. This might be due to an invalid organization ID or an expired consent attempt.";
         }
         return "The smart contract rejected the transaction due to a logic error.";
     }

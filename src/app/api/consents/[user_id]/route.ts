@@ -1,3 +1,4 @@
+import algosdk from 'algosdk';
 import { NextResponse } from 'next/server';
 import { algodClient, indexerClient } from '@/lib/algorand';
 
@@ -18,107 +19,88 @@ export async function GET(
             throw new Error("Smart Contract APP_ID is not configured.");
         }
 
-        // 1. Fetch Current Local State from Algod (Source of Truth for "Current" permission)
-        let appState;
-        try {
-            appState = await algodClient.accountApplicationInformation(userId, APP_ID).do();
-        } catch (e: any) {
-            if (e.status === 404 || e.message?.includes('not found') || e.message?.includes('does not exist')) {
-                return NextResponse.json({ success: true, user_id: userId, consents: [], total: 0 });
-            }
-            throw e;
-        }
-
-        const localState = appState.appLocalState;
-        if (!localState || !localState.keyValue) {
-            return NextResponse.json({ success: true, user_id: userId, consents: [], total: 0 });
-        }
-
-        // 2. Fetch Transaction History from Indexer to recover actual TxIDs
-        // We look for NoOp transactions to this app by this user
-        let txHistory: any[] = [];
-        try {
-            const txRes = await indexerClient
-                .searchForTransactions()
-                .address(userId)
-                .applicationID(APP_ID)
-                .txType('appl') // application transactions
-                .do();
-            txHistory = txRes.transactions || [];
-        } catch (idxErr) {
-            console.warn("Indexer lookup failed, falling back to basic display:", idxErr);
-        }
-
-        const kvPairs = localState.keyValue;
         const consents = [];
 
-        for (const kv of kvPairs) {
-            const orgId = Buffer.from(kv.key).toString('utf8');
-            const valueBytes = kv.value.bytes;
-
-            if (!valueBytes) continue;
-
-            const valueStr = Buffer.from(valueBytes).toString('utf8');
-
-            try {
-                const payload = JSON.parse(valueStr);
-                const expiry = payload.e ? new Date(payload.e) : new Date(payload.exp);
-                const isExpired = expiry < new Date();
-
-                // Find the latest transaction for this organization
-                // Application args are: [ "Grant", orgId, payload ]
-                let transactionId: string = 'SmartContractState'; // Default if no matching transaction is found
-
-                const txnsResponse: any = await indexerClient.searchForTransactions()
-                    .address(userId)
-                    .applicationID(APP_ID)
-                    .txType('appl') // Application calls only
-                    .do();
-
-                const matchingTxn = txnsResponse.transactions?.find((t: any) => {
-                    // algosdk v3+ uses camelCase for the API response objects
-                    const appTransaction = t.applicationTransaction || t['application-transaction'];
-                    const appArgs = appTransaction?.applicationArgs || appTransaction?.['application-args'] || [];
+        // --- STEP 1: Fetch Legacy Local State Consents ---
+        try {
+            const accountInfo = await algodClient.accountApplicationInformation(userId, APP_ID).do();
+            const localState = accountInfo.appLocalState?.keyValue || [];
+            
+            for (const kv of localState) {
+                const orgId = Buffer.from(kv.key as Uint8Array).toString('utf8');
+                const valueStr = Buffer.from(kv.value.bytes as Uint8Array).toString('utf8');
+                
+                try {
+                    const payload = JSON.parse(valueStr);
+                    const expiry = payload.e ? new Date(payload.e) : new Date(payload.exp);
+                    const isExpired = expiry < new Date();
                     
-                    if (appArgs.length < 2) return false;
-
-                    // In algosdk v3+, args are already Uint8Array or Buffer
-                    try {
-                        const callType = Buffer.from(appArgs[0]).toString();
-                        const orgArg = appArgs[1]; // organization_id
-                        const orgValue = Buffer.from(orgArg).toString();
-                        
-                        return callType === 'Grant' && orgValue === orgId;
-                    } catch (e) {
-                        return false;
-                    }
-                });
-
-                if (matchingTxn) {
-                    transactionId = matchingTxn.id;
+                    consents.push({
+                        transactionId: 'LegacyLocalState',
+                        organization_id: orgId,
+                        data_scope: payload.s || payload.scopes || '',
+                        purpose: payload.p || payload.purpose || '',
+                        consent_timestamp: payload.timestamp || new Date().toISOString(),
+                        expiry_date: expiry.toISOString(),
+                        status: isExpired ? 'expired' : 'active'
+                    });
+                } catch (pErr) {
+                    console.warn(`Skipping invalid local state record for ${orgId}`);
                 }
-
-                consents.push({
-                    transactionId: transactionId,
-                    organization_id: orgId,
-                    data_scope: payload.s || payload.scopes || '',
-                    purpose: payload.p || payload.purpose || '',
-                    consent_timestamp: payload.timestamp || (matchingTxn ? new Date(Number(matchingTxn.roundTime || matchingTxn['round-time']) * 1000).toISOString() : new Date().toISOString()),
-                    expiry_date: expiry.toISOString(),
-                    status: isExpired ? 'expired' : 'active'
-                });
-            } catch (err) {
-                console.error("Error parsing local state value JSON", valueStr, err);
-                consents.push({
-                    transactionId: 'CorruptedState',
-                    organization_id: orgId,
-                    data_scope: 'CORRUPTED DATA',
-                    purpose: 'CORRUPTED DATA',
-                    consent_timestamp: new Date().toISOString(),
-                    expiry_date: new Date().toISOString(),
-                    status: 'expired'
-                });
             }
+        } catch (localErr) {
+            console.log("No local state found for this user/app combo - common for new Box-only users.");
+        }
+
+        // --- STEP 2: Fetch ALL Boxes for this Application from Algod ---
+        // Box Name = User Address (32 bytes) + OrgID string
+        const userPubKey = algosdk.decodeAddress(userId).publicKey;
+        
+        try {
+            const boxesResponse = await algodClient.getApplicationBoxes(APP_ID).do();
+            const allBoxes = boxesResponse.boxes || [];
+
+            // Filter boxes belonging to this user
+            const userBoxes = allBoxes.filter((box: any) => {
+                const name = box.name;
+                if (name.length < 32) return false;
+                
+                // Check if first 32 bytes match the user's public key
+                for (let i = 0; i < 32; i++) {
+                    if (name[i] !== userPubKey[i]) return false;
+                }
+                return true;
+            });
+
+            // Fetch contents for each user box (Batching for performance)
+            for (const box of userBoxes) {
+                try {
+                    const boxNameObj = box.name;
+                    const orgIdBytes = boxNameObj.slice(32);
+                    const orgId = Buffer.from(orgIdBytes).toString('utf8');
+
+                    const boxContentRes = await algodClient.getApplicationBoxByName(APP_ID, boxNameObj).do();
+                    const valueStr = Buffer.from(boxContentRes.value).toString('utf8');
+                    
+                    const payload = JSON.parse(valueStr);
+                    const expiry = payload.e ? new Date(payload.e) : new Date(payload.exp);
+                    const isExpired = expiry < new Date();
+
+                    consents.push({
+                        transactionId: 'BoxVerified',
+                        organization_id: orgId,
+                        data_scope: payload.s || payload.scopes || '',
+                        purpose: payload.p || payload.purpose || '',
+                        consent_timestamp: payload.timestamp || new Date().toISOString(),
+                        expiry_date: expiry.toISOString(),
+                        status: isExpired ? 'expired' : 'active'
+                    });
+                } catch (boxErr) {
+                    console.error("Error reading box content:", boxErr);
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching boxes:", err);
         }
 
         return NextResponse.json({
