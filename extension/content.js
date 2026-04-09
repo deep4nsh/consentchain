@@ -21,7 +21,6 @@ async function checkAndSignal() {
   const { userAddress } = await chrome.storage.local.get('userAddress');
   
   if (!userAddress) {
-    console.log('Sentinel: No user address configured. Please set identity in extension popup.');
     return;
   }
 
@@ -30,8 +29,6 @@ async function checkAndSignal() {
     { type: 'VERIFY_PAGE', userAddress, orgId },
     (response) => {
       if (response && response.verified) {
-        console.log(`Sentinel: On-chain consent verified for ${orgId}. Unlocking...`);
-        
         // 4. Signal the portal to auto-unlock
         window.postMessage({ 
           type: 'CONSENT_VERIFIED', 
@@ -70,7 +67,7 @@ function injectBadge(verified) {
     letter-spacing: 0.1em;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     display: flex;
-    items-center;
+    align-items: center;
     gap: 8px;
     z-index: 999999;
     border: 1px solid rgba(255,255,255,0.1);
@@ -80,7 +77,7 @@ function injectBadge(verified) {
   `;
 
   badge.innerHTML = `
-    <div style="width: 8px; h: 8px; border-radius: 50%; background: ${verified ? '#fff' : '#64748b'}; ${verified ? 'box-shadow: 0 0 10px #fff;' : ''}"></div>
+    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${verified ? '#fff' : '#64748b'}; ${verified ? 'box-shadow: 0 0 10px #fff;' : ''}"></div>
     SENTINEL: ${verified ? 'SECURED' : 'LOCKED'}
   `;
 

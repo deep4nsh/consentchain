@@ -32,7 +32,6 @@ export default function IntegrationDemo() {
             {/* The Integrated Widget */}
             <ConsentWidget 
                 orgId="apollo_hospitals" 
-                onSuccess={(receipt) => console.log('Successfully integrated:', receipt)}
             />
             
             <div className="mt-16 text-gray-500 text-sm flex flex-col items-center space-y-4">

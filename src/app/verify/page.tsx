@@ -65,7 +65,6 @@ export default function VerifyPortal() {
                     throw new Error(data.error || 'Failed to fetch consent records');
                 }
             } else {
-                console.log("Verification API Response:", data);
                 const consents: ConsentRecord[] = data.consents.map((c: any) => ({
                     id: c.transactionId,
                     organization: c.organization_id,
@@ -91,7 +90,6 @@ export default function VerifyPortal() {
                 }
             }
         } catch (error: any) {
-            console.error('API Error:', error);
             setSearchResult({ status: 'ERROR', message: error.message || 'An unexpected error occurred while verifying consent.' });
         } finally {
             setIsSearching(false);

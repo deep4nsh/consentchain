@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   title: "ConsentChain",
   description: "ConsentChain - Decentralized Consent Management Platform on Algorand",
   icons: {
-    icon: "/concentchain.png",
-    apple: "/concentchain.png",
+    icon: "/consentchain.png",
+    apple: "/consentchain.png",
   },
 };
 
