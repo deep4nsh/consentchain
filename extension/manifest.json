@@ -7,8 +7,15 @@
     "storage",
     "activeTab",
     "tabs",
-    "scripting"
+    "scripting",
+    "notifications"
   ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost/*",
+      "https://*.vercel.app/*"
+    ]
+  },
   "host_permissions": [
     "http://localhost/*",
     "https://*.vercel.app/*"

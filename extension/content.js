@@ -1,6 +1,6 @@
 /**
- * Sentinel Content Script
- * Detects partner portals and signals auto-unlock
+ * Sentinel Content Script V2
+ * Detects partner portals, performs secure handshakes, and enables interactive consent.
  */
 
 const PARTNER_MAP = {
@@ -8,35 +8,45 @@ const PARTNER_MAP = {
   '/demo/bank': 'meta-finance-demo'
 };
 
+let currentNonce = null;
+
 async function checkAndSignal() {
   const path = window.location.pathname;
   const orgId = PARTNER_MAP[path];
   
   if (!orgId) return;
 
-  // 1. Alert the page that Sentinel is scanning
-  window.postMessage({ type: 'CONSENT_CHALLENGE' }, '*');
+  // 1. Generate Nonce for secure handshake
+  currentNonce = Math.random().toString(36).substring(2, 15);
 
-  // 2. Get user address from extension storage
+  // 2. Alert the page with a challenge
+  window.postMessage({ 
+    type: 'CONSENT_CHALLENGE', 
+    nonce: currentNonce,
+    version: '2.0.0'
+  }, '*');
+
+  // 3. Get user address from extension storage
   const { userAddress } = await chrome.storage.local.get('userAddress');
   
   if (!userAddress) {
+    injectBadge(false, 'No Identity');
     return;
   }
 
-  // 3. Request background verification
+  // 4. Request background verification
   chrome.runtime.sendMessage(
     { type: 'VERIFY_PAGE', userAddress, orgId },
     (response) => {
       if (response && response.verified) {
-        // 4. Signal the portal to auto-unlock
+        // 5. Signal the portal to auto-unlock with verified nonce
         window.postMessage({ 
           type: 'CONSENT_VERIFIED', 
           orgId,
+          nonce: currentNonce,
           verifiedAt: new Date().toISOString()
         }, '*');
 
-        // 5. Inject a subtle security badge
         injectBadge(true);
       } else {
         injectBadge(false);
@@ -45,46 +55,75 @@ async function checkAndSignal() {
   );
 }
 
-function injectBadge(verified) {
+function injectBadge(verified, label = null) {
   const existing = document.getElementById('sentinel-badge');
   if (existing) existing.remove();
 
   const badge = document.createElement('div');
   badge.id = 'sentinel-badge';
+  
+  // V2 Styles: Interactive & Modern
   badge.style.cssText = `
     position: fixed;
     bottom: 24px;
     right: 24px;
-    padding: 12px 20px;
-    border-radius: 100px;
-    background: ${verified ? 'rgba(16, 185, 129, 0.9)' : 'rgba(15, 23, 42, 0.9)'};
-    backdrop-filter: blur(12px);
+    padding: 10px 18px;
+    border-radius: 16px;
+    background: ${verified ? 'rgba(16, 185, 129, 0.95)' : 'rgba(15, 23, 42, 0.95)'};
+    backdrop-filter: blur(16px);
     color: white;
-    font-family: sans-serif;
-    font-size: 12px;
-    font-weight: 800;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     z-index: 999999;
     border: 1px solid rgba(255,255,255,0.1);
-    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-    cursor: default;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
   `;
 
   badge.innerHTML = `
-    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${verified ? '#fff' : '#64748b'}; ${verified ? 'box-shadow: 0 0 10px #fff;' : ''}"></div>
-    SENTINEL: ${verified ? 'SECURED' : 'LOCKED'}
+    <div style="width: 8px; height: 8px; border-radius: 50%; background: #fff; ${verified ? 'box-shadow: 0 0 10px #fff;' : 'opacity: 0.3;'}"></div>
+    <div style="display: flex; flex-direction: column;">
+        <span style="font-size: 9px; opacity: 0.7; margin-bottom: -1px;">SENTINEL V2</span>
+        <span>${label || (verified ? 'SECURED' : 'UNAUTHORIZED')}</span>
+    </div>
+    ${!verified ? `
+        <div style="margin-left: 10px; padding: 4px 8px; background: rgba(255,255,255,0.1); border-radius: 6px; font-size: 9px; hover:background: rgba(255,255,255,0.2);">
+            REQUEST
+        </div>
+    ` : ''}
   `;
+
+  badge.addEventListener('mouseenter', () => {
+    badge.style.transform = 'translateY(-2px) scale(1.02)';
+  });
+  
+  badge.addEventListener('mouseleave', () => {
+    badge.style.transform = 'translateY(0) scale(1)';
+  });
+
+  badge.addEventListener('click', () => {
+    if (!verified) {
+        // Open the dashboard to grant consent
+        window.open('http://localhost:3000/demo', '_blank');
+    } else {
+        // Toggle health status or show details (Future feature)
+        window.open('http://localhost:3000/dashboard', '_blank');
+    }
+  });
 
   const style = document.createElement('style');
   style.innerHTML = `
     @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
+      from { transform: translateY(30px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
   `;
@@ -100,4 +139,11 @@ chrome.runtime.onMessage.addListener((request) => {
   if (request.type === 'ADDRESS_UPDATED') {
     checkAndSignal();
   }
+});
+
+// Secure Handshake listener (Confirming the page is listening)
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'CONSENT_ACK' && event.data.nonce === currentNonce) {
+        console.log('Sentinel: Secure handshake established with partner site.');
+    }
 });

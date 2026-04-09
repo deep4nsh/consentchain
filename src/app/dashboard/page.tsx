@@ -30,6 +30,8 @@ export default function Dashboard() {
     const [error, setError] = useState<string | null>(null);
     const [revokingId, setRevokingId] = useState<string | null>(null);
     const [auditLogs, setAuditLogs] = useState<string[]>([]);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncSuccess, setSyncSuccess] = useState(false);
 
     const addAuditLog = (msg: string) => {
         setAuditLogs(prev => [msg, ...prev].slice(0, 5));
@@ -93,6 +95,39 @@ export default function Dashboard() {
         }
     };
 
+    const handleSync = async () => {
+        if (!accountAddress || typeof window === 'undefined') return;
+        
+        setIsSyncing(true);
+        // This is a placeholder ID. In a real environment, this is static.
+        const EXT_ID = "ojfmkfhlclmdlphmndklpkdlpgmndkla"; 
+        
+        try {
+            // @ts-ignore - chrome is available in browser context for extension communication
+            if (window.chrome?.runtime?.sendMessage) {
+                // @ts-ignore
+                window.chrome.runtime.sendMessage(EXT_ID, { 
+                    type: 'SYNC_ADDRESS', 
+                    address: accountAddress 
+                }, (response: any) => {
+                    if (response?.success) {
+                        setSyncSuccess(true);
+                        addAuditLog("Sentinel: Identity synced successfully.");
+                        setTimeout(() => setSyncSuccess(false), 3000);
+                    } else {
+                        throw new Error("Extension did not respond.");
+                    }
+                });
+            } else {
+                throw new Error("Sentinel extension not detected.");
+            }
+        } catch (err: any) {
+            setError("Could not sync with Sentinel. Ensure the extension is installed and active.");
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     useEffect(() => {
         if (mounted && accountAddress) {
             fetchConsents();
@@ -129,11 +164,30 @@ export default function Dashboard() {
                 </div>
 
                 {mounted && accountAddress && (
-                    <div className="glass-card px-4 py-2 flex items-center space-x-3 self-center md:self-auto rounded-xl border border-white/10">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-xs font-mono font-medium text-gray-400">
-                            {accountAddress.substring(0, 6)}...{accountAddress.substring(accountAddress.length - 6)}
-                        </span>
+                    <div className="flex items-center gap-3">
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleSync}
+                            disabled={isSyncing}
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all ${
+                                syncSuccess 
+                                ? 'bg-green-500/20 border-green-500/50 text-green-400' 
+                                : 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20'
+                            }`}
+                        >
+                            <Shield className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                            <span className="text-xs font-bold uppercase tracking-wider">
+                                {syncSuccess ? 'Synced!' : 'Sync Sentinel'}
+                            </span>
+                        </motion.button>
+
+                        <div className="glass-card px-4 py-2 flex items-center space-x-3 self-center md:self-auto rounded-xl border border-white/10">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-xs font-mono font-medium text-gray-400">
+                                {accountAddress.substring(0, 6)}...{accountAddress.substring(accountAddress.length - 6)}
+                            </span>
+                        </div>
                     </div>
                 )}
             </motion.div>

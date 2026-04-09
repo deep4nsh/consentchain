@@ -28,6 +28,23 @@ async function verifyOnChain(userAddress, orgId) {
   }
 }
 
+// Listen for messages from official Dashboard (externally_connectable)
+chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+  if (request.type === 'SYNC_ADDRESS') {
+    const { address } = request;
+    chrome.storage.local.set({ userAddress: address }, () => {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: 'Sentinel Synced',
+        message: `Identity updated: ${address.substring(0, 10)}...`
+      });
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+});
+
 // Listen for messages from Content Scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'VERIFY_PAGE') {
