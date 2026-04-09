@@ -34,6 +34,53 @@ For this hackathon MVP, we prioritized extreme speed and simplicity over boundle
 
 **JSON Payload Compression**: Because Algorand Local state caps byte-slice values at exactly 128 bytes, all consent JSON payloads are heavily compressed into 1-letter keys (`s`, `p`, `e`) and Unix timestamps before submission.
 
+## 🛠️ How to Integrate (For Organizations)
+
+One of ConsentChain's core strengths is its ease of integration for other websites and organizations.
+
+### 1. Zero-Trust Web Widget (React/Next.js)
+If you are building a React-based application, you can integrate the consent flow with just one line of code using our `ConsentWidget`:
+
+```tsx
+import ConsentWidget from '@/components/ConsentWidget';
+
+// In your page:
+<ConsentWidget 
+    orgId="your_org_id" 
+    onSuccess={(receipt) => {
+        console.log("Consent granted and verified on-chain!", receipt);
+    }} 
+/>
+```
+
+### 2. Developer SDK (Programmatic)
+For deeper integrations, use the `ConsentChainSDK` from `@/lib/sdk`:
+
+```typescript
+import { ConsentChainSDK } from '@/lib/sdk';
+import { algodClient, indexerClient } from '@/lib/algorand';
+
+const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
+
+// Verify consent on your backend
+const status = await sdk.verifyConsent(userAddress, orgId);
+if (status.exists && !status.isExpired) {
+    // Process user data safely
+}
+```
+
+## 🏗️ Technical Architecture
+
+### Consent SDK Core
+The logic for interacting with the Algorand blockchain is encapsulated in `src/lib/sdk`.
+- **`prepareGrant`**: Builds the atomic transaction group (MBR Payment + App NoOp).
+- **`verifyConsent`**: Queries the blockchain directly (Boxes) to retrieve and decode consent status.
+- **`utils.ts`**: Handles JSON payload compression to ensure records stay under the 128-byte storage limit.
+
+### Smart Contract (TEAL)
+- **Box Storage**: Used for unbounded, scalable mapping of `(User + Org)` to consent data.
+- **Minimum Balance Requirement (MBR)**: Automatically calculated and handled by the SDK during the `Grant` process.
+
 ## Tech Stack
 - Next.js 15 (React 19)
 - Tailwind CSS

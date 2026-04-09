@@ -1,12 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, BadgeCheck } from 'lucide-react';
+import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, BadgeCheck, ExternalLink, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { parseAlgorandError } from '@/lib/errorParser';
-import ConsentMap from '@/components/ConsentMap';
 import { ORGANIZATIONS } from '@/lib/constants';
+import { ConsentChainSDK } from '@/lib/sdk/core';
+import { algodClient, indexerClient } from '@/lib/algorand';
+import ConsentMap from '@/components/ConsentMap';
+
+const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
 
 interface ConsentRecord {
     transactionId: string;
@@ -21,7 +25,6 @@ interface ConsentRecord {
 export default function Dashboard() {
     const { activeAddress: accountAddress, signTransactions } = useWallet();
     const [mounted, setMounted] = useState(false);
-
     const [consents, setConsents] = useState<ConsentRecord[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -30,33 +33,6 @@ export default function Dashboard() {
 
     const addAuditLog = (msg: string) => {
         setAuditLogs(prev => [msg, ...prev].slice(0, 5));
-    };
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (consents.length > 0) {
-                const activeOnes = consents.filter(c => c.status === 'active');
-                if (activeOnes.length > 0) {
-                    const randomOrg = activeOnes[Math.floor(Math.random() * activeOnes.length)];
-                    const orgName = ORGANIZATIONS.find(o => o.id === randomOrg.organization_id)?.name || randomOrg.organization_id;
-                    addAuditLog(`Audit: ${orgName} verified consent signature... SUCCESS`);
-                }
-            }
-        }, 5000);
-        return () => clearInterval(interval);
-    }, [consents]);
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
     };
 
     useEffect(() => {
@@ -71,10 +47,7 @@ export default function Dashboard() {
             const res = await fetch(`/api/consents/${accountAddress}`);
             const data = await res.json();
 
-            if (!data.success) {
-                throw new Error(data.error);
-            }
-            console.log("Dashboard API Response:", data);
+            if (!data.success) throw new Error(data.error);
             setConsents(data.consents);
         } catch (err: any) {
             console.error("Dashboard error:", err);
@@ -88,47 +61,33 @@ export default function Dashboard() {
         if (!accountAddress) return;
         try {
             setRevokingId(organizationId);
+            setError(null);
 
-            // STEP 1: Build Unsigned Revocation Txn on Backend
-            const buildRes = await fetch('/api/consent/revoke', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ organization_id: organizationId, user_id: accountAddress })
-            });
-
-            const buildData = await buildRes.json();
-            if (!buildData.success) throw new Error(buildData.error);
-
-            // STEP 2: Sign in Frontend Web3 Wallet
-            const unsignedTxnsBase64 = buildData.txns as string[];
-            const uint8ArrayTxns = unsignedTxnsBase64.map(b64 => new Uint8Array(Buffer.from(b64, 'base64')));
-
-            let signedTxnGroups;
-            try {
-                signedTxnGroups = await signTransactions(uint8ArrayTxns);
-            } catch (err: any) {
-                console.error(err);
-                throw new Error("Transaction signing failed or was rejected by user");
-            }
-
-            // STEP 3: Submit signed transactions
-            const base64SignedTxns = signedTxnGroups.filter(Boolean).map((arrIdx: any) => Buffer.from(arrIdx).toString('base64'));
-
+            const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
+            
+            // 1. Prepare Revocation Transaction group using SDK
+            const txns = await sdk.prepareRevoke(accountAddress, organizationId);
+            
+            // 2. Sign Transaction(s)
+            const signedGroups = await signTransactions(txns.map(t => t.toByte()));
+            
+            // 3. Submit
+            const base64SignedTxns = signedGroups.map(txn => Buffer.from(txn).toString('base64'));
             const submitRes = await fetch('/api/consent/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    signedTxns: base64SignedTxns
-                })
+                body: JSON.stringify({ signedTxns: base64SignedTxns })
             });
 
             const submitData = await submitRes.json();
             if (!submitData.success) throw new Error(submitData.error);
 
-            // Refetch to get updated status
-            await fetchConsents();
+            addAuditLog(`Revoked: Success for ${organizationId}. TxID: ${submitData.txId.substring(0, 8)}`);
+            
+            // Wait a moment for the indexer/algod to catch up
+            setTimeout(() => fetchConsents(), 2000);
         } catch (err: any) {
-            alert(`Failed to revoke: ${err.message}`);
+            setError(parseAlgorandError(err));
         } finally {
             setRevokingId(null);
         }
@@ -142,199 +101,192 @@ export default function Dashboard() {
         }
     }, [mounted, accountAddress]);
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    };
+
     return (
         <motion.main 
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="min-h-screen pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center"
+            className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center"
         >
-            <motion.div variants={itemVariants} className="w-full max-w-5xl mb-12 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6">
-                <div>
-                    <h1 className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 mb-4 tracking-tight">
-                        My Data Consents
+            <motion.div variants={itemVariants} className="w-full max-w-5xl mb-12 flex flex-col md:flex-row md:justify-between md:items-end gap-6 text-center md:text-left">
+                <div className="flex-1">
+                    <h1 className="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 mb-3 tracking-tight">
+                        Security Vault
                     </h1>
-                    <p className="text-xl text-gray-500 font-light">Manage your immutable permission records on the Algorand ledger.</p>
+                    <p className="text-lg text-gray-500 font-light max-w-xl mx-auto md:mx-0">
+                        Manage your immutable data permissions on the Algorand ledger. Unified consent control for all your apps.
+                    </p>
                 </div>
 
                 {mounted && accountAddress && (
-                    <div className="glass-card px-5 py-2.5 flex items-center space-x-3 self-start sm:self-auto rounded-2xl">
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                        <span className="text-sm font-mono font-medium text-gray-300">
-                            {accountAddress.substring(0, 8)}...{accountAddress.substring(accountAddress.length - 8)}
+                    <div className="glass-card px-4 py-2 flex items-center space-x-3 self-center md:self-auto rounded-xl border border-white/10">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-xs font-mono font-medium text-gray-400">
+                            {accountAddress.substring(0, 6)}...{accountAddress.substring(accountAddress.length - 6)}
                         </span>
                     </div>
                 )}
             </motion.div>
 
             {error && (
-                <div className="w-full max-w-5xl bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl mb-8 text-center">
-                    <div dangerouslySetInnerHTML={{ 
-                        __html: `Error: ${error.replace(
-                            /(https?:\/\/[^\s]+)/g, 
-                            '<a href="$1" target="_blank" rel="noopener noreferrer" class="underline hover:text-white transition-colors">$1</a>'
-                        )}`
-                    }} />
+                <div className="w-full max-w-5xl bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl mb-8 text-sm flex items-start gap-3">
+                    <BadgeAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <div dangerouslySetInnerHTML={{ __html: error }} />
                 </div>
             )}
 
-            {mounted && !accountAddress ? (
-                <motion.div variants={itemVariants} className="flex-1 w-full flex items-center justify-center pt-12">
-                    <div className="w-full max-w-lg glass-card rounded-3xl p-12 text-center relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-yellow-500 to-orange-500" />
-                        <Shield className="w-20 h-20 text-yellow-500/80 mx-auto mb-8 animate-pulse-slow" />
-                        <h2 className="text-3xl font-bold mb-4 text-white tracking-wide">Wallet Required</h2>
-                        <p className="text-gray-400 mb-10 text-lg leading-relaxed font-light">
-                            Please connect your Algorand wallet to access your decentralized consent records.
-                        </p>
-                    </div>
+            {!accountAddress ? (
+                <motion.div variants={itemVariants} className="w-full max-w-lg glass-card rounded-3xl p-12 text-center mt-12">
+                    <Shield className="w-16 h-16 text-yellow-500/80 mx-auto mb-6 animate-pulse-slow" />
+                    <h2 className="text-2xl font-bold mb-3 text-white">Wallet Not Connected</h2>
+                    <p className="text-gray-400 mb-8 font-light">
+                        Please connect your Algorand wallet to view and manage your data consents.
+                    </p>
                 </motion.div>
             ) : loading ? (
-                <motion.div variants={itemVariants} className="flex-1 w-full flex items-center justify-center pt-12">
-                    <div className="flex flex-col items-center space-y-6">
-                        <div className="relative">
-                            <Shield className="w-16 h-16 text-blue-500 animate-pulse" />
-                            <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full" />
-                        </div>
-                        <p className="text-xl text-gray-400 font-light tracking-wide">Syncing with Algorand Ledger...</p>
+                <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                    <div className="relative">
+                        <Shield className="w-12 h-12 text-blue-500 animate-spin-slow" />
+                        <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-full" />
                     </div>
-                </motion.div>
+                    <p className="text-gray-500 font-light">Decrypting on-chain permissions...</p>
+                </div>
             ) : consents.length === 0 ? (
-                <motion.div variants={itemVariants} className="w-full max-w-5xl glass-card rounded-3xl p-20 text-center">
-                    <Database className="w-20 h-20 text-gray-700 mx-auto mb-6" />
-                    <h2 className="text-2xl font-bold mb-3 text-gray-200">No Records Found</h2>
-                    <p className="text-gray-500 text-lg font-light">Your consent history is currently empty.</p>
+                <motion.div variants={itemVariants} className="w-full max-w-5xl glass-card rounded-3xl p-20 text-center border-dashed border-white/5">
+                    <Database className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+                    <h2 className="text-xl font-bold mb-2 text-gray-300">Clean Slate</h2>
+                    <p className="text-gray-500 font-light">You haven't granted any data permissions yet.</p>
                 </motion.div>
             ) : (
                 <div className="w-full max-w-5xl flex flex-col items-center">
                     <ConsentMap activeAddress={accountAddress} consents={consents} />
                     
                     {/* Live Audit Feed */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="w-full mb-8 bg-black/40 border border-white/5 rounded-2xl p-4 overflow-hidden"
-                    >
-                        <div className="flex items-center gap-2 mb-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                            <Activity className="w-3 h-3 text-green-500 animate-pulse" />
-                            Live Verification Stream
+                    <div className="w-full mb-8 bg-black/30 border border-white/5 rounded-2xl p-4">
+                        <div className="flex items-center gap-2 mb-3 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
+                            <Activity className="w-3 h-3 text-green-500" />
+                            Security Audit Stream
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <AnimatePresence mode='popLayout'>
                                 {auditLogs.length > 0 ? auditLogs.map((log, i) => (
                                     <motion.div 
                                         key={log + i}
-                                        initial={{ opacity: 0, x: -20 }}
+                                        initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        className="text-xs font-mono text-emerald-400/80 bg-emerald-500/5 px-3 py-1.5 rounded flex items-center justify-between"
+                                        exit={{ opacity: 0, x: 10 }}
+                                        className="text-[11px] font-mono text-blue-400 px-3 py-1 bg-blue-500/5 rounded flex items-center justify-between"
                                     >
                                         <span>{'>'} {log}</span>
-                                        <span className="text-[10px] text-gray-600 italic">just now</span>
                                     </motion.div>
                                 )) : (
-                                    <div className="text-xs font-mono text-gray-600 italic text-center py-2 underline decoration-gray-800">
-                                        Waiting for on-chain events...
+                                    <div className="text-[10px] font-mono text-gray-700 italic text-center py-1">
+                                        Monitoring blockchain events...
                                     </div>
                                 )}
                             </AnimatePresence>
                         </div>
-                    </motion.div>
+                    </div>
 
-                    <div className="w-full space-y-4">
-                    {consents.map((consent, index) => (
-                        <motion.div
-                            variants={itemVariants}
-                            key={consent.transactionId}
-                            className={`glass-card transition-all p-8 group relative overflow-hidden rounded-[2rem] ${consent.status?.toLowerCase() !== 'active' ? 'opacity-60 grayscale-[0.5]' : ''}`}
-                        >
-                            <div className={`absolute top-0 left-0 w-1 h-full ${consent.status?.toLowerCase() === 'active' ? 'bg-green-500'
-                                : consent.status?.toLowerCase() === 'revoked' ? 'bg-red-500'
-                                    : 'bg-gray-600'
-                                }`} />
-
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                <div className="space-y-4 flex-1">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="p-2 bg-white/5 rounded-lg border border-white/10">
-                                            <Webhook className="w-5 h-5 text-indigo-400" />
+                    <div className="w-full grid grid-cols-1 gap-4">
+                        {consents.map((consent) => (
+                            <motion.div
+                                variants={itemVariants}
+                                key={consent.organization_id + consent.transactionId}
+                                className={`glass-card p-6 flex flex-col md:flex-row gap-6 group hover:border-white/20 transition-all rounded-3xl relative overflow-hidden ${consent.status !== 'active' ? 'opacity-50 grayscale shadow-none' : 'hover:shadow-[0_0_30px_rgba(59,130,246,0.1)]'}`}
+                            >
+                                {/* Verification Badge */}
+                                <div className="absolute top-4 right-4 flex gap-2">
+                                    {consent.transactionId === 'BoxVerified' && (
+                                        <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-500/20">
+                                            <BadgeCheck className="w-3 h-3" /> Blockchain Verified
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white tracking-wide">{consent.organization_id}</h3>
-                                            {consent.transactionId !== 'SmartContractState' && consent.transactionId !== 'CorruptedState' ? (
-                                                <a href={`https://lora.algokit.io/testnet/transaction/${consent.transactionId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:text-blue-300 font-mono truncate max-w-[200px] sm:max-w-[300px] block mt-1">
-                                                    Txn: {consent.transactionId.substring(0, 16)}...
+                                    )}
+                                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                        consent.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                                    }`}>
+                                        {consent.status}
+                                    </div>
+                                </div>
+
+                                <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl border border-white/10 flex items-center justify-center">
+                                    <Webhook className="w-7 h-7 text-indigo-400" />
+                                </div>
+
+                                <div className="flex-1 space-y-4">
+                                    <div className="pt-1">
+                                        <h3 className="text-xl font-bold text-white mb-1">{consent.organization_id}</h3>
+                                        <p className="text-sm text-gray-400 font-light line-clamp-1">
+                                            Granted for: <span className="text-gray-300 italic">"{consent.purpose}"</span>
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div className="space-y-1">
+                                            <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold flex items-center gap-1.5">
+                                                <Database className="w-3 h-3 text-blue-400" /> Scope
+                                            </div>
+                                            <div className="text-xs font-medium text-gray-300 capitalize">{consent.data_scope.split(',').join(', ')}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold flex items-center gap-1.5">
+                                                <Clock className="w-3 h-3 text-indigo-400" /> Granted
+                                            </div>
+                                            <div className="text-xs font-medium text-gray-300">{new Date(consent.consent_timestamp).toLocaleDateString()}</div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold flex items-center gap-1.5">
+                                                <BadgeCheck className="w-3 h-3 text-emerald-400" /> Expires
+                                            </div>
+                                            <div className="text-xs font-medium text-gray-300">{new Date(consent.expiry_date).toLocaleDateString()}</div>
+                                        </div>
+                                        <div className="space-y-1 hidden lg:block">
+                                            <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold flex items-center gap-1.5">
+                                                <ExternalLink className="w-3 h-3 text-purple-400" /> Evidence
+                                            </div>
+                                            {consent.transactionId !== 'BoxVerified' && consent.transactionId !== 'LegacyLocalState' ? (
+                                                <a 
+                                                    href={`https://lora.algokit.io/testnet/transaction/${consent.transactionId}`}
+                                                    target="_blank"
+                                                    className="text-[10px] font-mono text-blue-400 hover:underline block truncate"
+                                                >
+                                                    {consent.transactionId.substring(0, 10)}...
                                                 </a>
                                             ) : (
-                                                <span className="text-xs text-gray-500 font-mono truncate max-w-[200px] sm:max-w-[300px] block mt-1">
-                                                    Source: On-Chain State
-                                                </span>
+                                                <div className="text-[10px] font-mono text-gray-500">Box Storage</div>
                                             )}
                                         </div>
+                                    </div>
+                                </div>
 
-                                        <div className="ml-auto md:hidden">
-                                            {consent.status === 'active' ? (
-                                                <span className="flex items-center text-xs font-medium text-green-400 bg-green-400/10 px-2.5 py-1 rounded-full border border-green-400/20">
-                                                    <BadgeCheck className="w-3 h-3 mr-1" /> Active
-                                                </span>
-                                            ) : consent.status === 'revoked' ? (
-                                                <span className="flex items-center text-xs font-medium text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
-                                                    <BadgeAlert className="w-3 h-3 mr-1" /> Revoked
-                                                </span>
+                                {consent.status === 'active' && (
+                                    <div className="flex md:flex-col justify-end gap-3 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-white/5 md:pl-6 min-w-[140px]">
+                                        <button
+                                            onClick={() => handleRevoke(consent.organization_id)}
+                                            disabled={revokingId === consent.organization_id}
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/20 disabled:opacity-50 text-xs font-bold group"
+                                        >
+                                            {revokingId === consent.organization_id ? (
+                                                <Activity className="w-3.5 h-3.5 animate-spin" />
                                             ) : (
-                                                <span className="flex items-center text-xs font-medium text-gray-400 bg-gray-400/10 px-2.5 py-1 rounded-full border border-gray-400/20">
-                                                    <BadgeAlert className="w-3 h-3 mr-1" /> Expired
-                                                </span>
+                                                <Trash2 className="w-3.5 h-3.5 group-hover:shake" />
                                             )}
-                                        </div>
+                                            {revokingId === consent.organization_id ? 'Revoking...' : 'Revoke Access'}
+                                        </button>
                                     </div>
-
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-                                        <div>
-                                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1"><Database className="w-3 h-3" /> Data Scope</p>
-                                            <p className="text-sm font-medium text-gray-300 capitalize">{consent.data_scope.replace(',', ', ')}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1"><Activity className="w-3 h-3" /> Purpose</p>
-                                            <p className="text-sm font-medium text-gray-300 capitalize">{consent.purpose}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> Granted</p>
-                                            <p className="text-sm font-medium text-gray-300">{new Date(consent.consent_timestamp).toLocaleDateString()}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1"><Shield className="w-3 h-3" /> Expires</p>
-                                            <p className="text-sm font-medium text-gray-300">{new Date(consent.expiry_date).toLocaleDateString()}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="hidden md:flex flex-col items-end space-y-4 min-w-[120px]">
-                                    {consent.status === 'active' ? (
-                                        <>
-                                            <span className="flex items-center text-sm font-medium text-green-400 bg-green-400/10 px-3 py-1 rounded-full border border-green-400/20">
-                                                <BadgeCheck className="w-4 h-4 mr-1.5" /> Active
-                                            </span>
-                                            <button
-                                                onClick={() => handleRevoke(consent.organization_id)}
-                                                disabled={revokingId === consent.organization_id}
-                                                className="text-sm font-medium text-red-400 hover:text-red-300 transition-colors border-b border-dashed border-red-500/50 hover:border-red-400 disabled:opacity-50"
-                                            >
-                                                {revokingId === consent.organization_id ? 'Revoking...' : 'Revoke Access'}
-                                            </button>
-                                        </>
-                                    ) : consent.status === 'revoked' ? (
-                                        <span className="flex items-center text-sm font-medium text-red-500 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
-                                            <BadgeAlert className="w-4 h-4 mr-1.5" /> Revoked
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center text-sm font-medium text-gray-400 bg-gray-400/10 px-3 py-1 rounded-full border border-gray-400/20">
-                                            <BadgeAlert className="w-4 h-4 mr-1.5" /> Expired
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                                )}
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
             )}
