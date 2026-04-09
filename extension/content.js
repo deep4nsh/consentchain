@@ -111,12 +111,15 @@ function injectBadge(verified, label = null) {
   });
 
   badge.addEventListener('click', () => {
+    // Dynamically determine the base URL (Vercel or localhost)
+    const baseUrl = window.location.origin;
+    
     if (!verified) {
-        // Open the dashboard to grant consent
-        window.open('http://localhost:3000/demo', '_blank');
+        // Open the demo page to grant consent
+        window.open(`${baseUrl}/demo`, '_blank');
     } else {
-        // Toggle health status or show details (Future feature)
-        window.open('http://localhost:3000/dashboard', '_blank');
+        // Open the dashboard
+        window.open(`${baseUrl}/dashboard`, '_blank');
     }
   });
 
