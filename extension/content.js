@@ -3,16 +3,15 @@
  * Detects partner portals, performs secure handshakes, and enables interactive consent.
  */
 
-const PARTNER_MAP = {
-  '/demo/hospital': 'apollo-health-demo',
-  '/demo/bank': 'meta-finance-demo'
-};
+// Partner detection is now dynamic via <meta name="consentchain-org-id" content="...">
+
 
 let currentNonce = null;
 
 async function checkAndSignal() {
-  const path = window.location.pathname;
-  const orgId = PARTNER_MAP[path];
+  // Try to find the orgId from a meta tag
+  const metaTag = document.querySelector('meta[name="consentchain-org-id"]');
+  const orgId = metaTag ? metaTag.getAttribute('content') : null;
   
   if (!orgId) return;
 
