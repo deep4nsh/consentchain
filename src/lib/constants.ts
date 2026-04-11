@@ -14,12 +14,10 @@ export const ORGANIZATIONS: Organization[] = [
 // This ensures on-chain data written with older IDs still displays correctly.
 export const LEGACY_ORG_NAMES: Record<string, string> = {
     // Old demo page IDs
-    'apollo_hospitals': "St. Mary's HealthVault",
     'icici_bank': 'FinSentinel Wealth',
     'hdfc_bank': 'FinSentinel Wealth',
     'zomato_health': 'UltraCover Insurance',
     // Old portal-specific IDs (pre-standardization)
-    'apollo-health-demo': "St. Mary's HealthVault",
     'meta-finance-demo': 'FinSentinel Wealth',
 };
 

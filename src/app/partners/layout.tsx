@@ -19,12 +19,6 @@ export default function PartnersLayout({
           {/* Portal Switcher */}
           <div className="ml-8 flex items-center bg-white/5 p-1 rounded-xl border border-white/10 self-center">
             <a 
-              href="/partners/apollo" 
-              className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-white/5 active:scale-95"
-            >
-              Apollo Health
-            </a>
-            <a 
               href="/partners/metafinance" 
               className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-white/5 active:scale-95 text-emerald-500"
             >
