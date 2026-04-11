@@ -9,15 +9,29 @@ const APP_ID = 721204057; // ConsentChain Smart Contract ID (Testnet)
 // Verification Logic (Directly querying Algorand for the demo)
 async function verifyOnChain(userAddress, orgId) {
   try {
-    // 1. Convert userAddress and orgId to Box Name format
-    // For the demo purpose, we'll perform a fetch to verify if the record exists
-    // in the smart contract's Box storage or Local State.
-    
+    if (!userAddress || userAddress === 'undefined') {
+      console.warn('Sentinel: No user address provided for verification.');
+      return false;
+    }
+
     // Simulating SDK fetch from the main dashboard API for robustness in demo
     const response = await fetch(`https://consentchain-vert.vercel.app/api/consents/${userAddress}`);
+    
+    // Safety Check: Ensure we didn't get an HTML error page (Vercel 404/500)
+    if (!response.ok) {
+        console.error(`Sentinel API Error: ${response.status}`);
+        return false;
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+        console.error('Sentinel API Error: Received non-JSON response');
+        return false;
+    }
+
     const data = await response.json();
     
-    if (data.consents) {
+    if (data.consents && Array.isArray(data.consents)) {
       const activeConsent = data.consents.find(c => c.organization_id === orgId && c.status === 'active');
       return !!activeConsent;
     }
