@@ -38,10 +38,11 @@ async function checkAndSignal() {
     { type: 'VERIFY_PAGE', userAddress, orgId },
     (response) => {
       if (response && response.verified) {
-        // 5. Signal the portal to auto-unlock with verified nonce
+        // 5. Signal the portal to auto-unlock with verified identity
         window.postMessage({ 
-          type: 'CONSENT_VERIFIED', 
+          type: 'SENTINEL_HANDSHAKE', 
           orgId,
+          address: userAddress, // Required by core.js
           nonce: currentNonce,
           verifiedAt: new Date().toISOString()
         }, '*');
