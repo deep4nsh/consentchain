@@ -312,7 +312,9 @@ export default function Dashboard() {
 
                                 <div className="flex-1 space-y-4">
                                     <div className="pt-1">
-                                        <h3 className="text-xl font-bold text-white mb-1">{consent.organization_id}</h3>
+                                        <h3 className="text-xl font-bold text-white mb-1">
+                                            {ORGANIZATIONS.find(o => o.id === consent.organization_id)?.name || consent.organization_id}
+                                        </h3>
                                         <p className="text-sm text-gray-400 font-light line-clamp-1">
                                             Granted for: <span className="text-gray-300 italic">"{consent.purpose}"</span>
                                         </p>

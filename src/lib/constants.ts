@@ -4,17 +4,17 @@ export interface Purpose { id: string; label: string }
 export interface Duration { value: number; label: string }
 
 export const ORGANIZATIONS: Organization[] = [
-    { id: 'apollo_hospitals', name: 'Apollo Hospitals Group' },
-    { id: 'icici_bank', name: 'ICICI Bank Ltd' },
-    { id: 'zomato_health', name: 'Zomato Health & Safety' },
+    { id: 'health-vault-demo', name: "St. Mary's HealthVault" },
+    { id: 'finsentinel-demo', name: 'FinSentinel Wealth' },
+    { id: 'ultracover-demo', name: 'UltraCover Insurance' },
     { id: 'indiamart', name: 'IndiaMART B2B Net' },
 ];
 
 export const DATA_SCOPES: DataScope[] = [
-    { id: 'medical_history', label: 'Medical History' },
-    { id: 'vitals', label: 'Vitals & Activity Log' },
-    { id: 'financial_records', label: 'Financial Records' },
-    { id: 'location_data', label: 'Real-time Location Data' },
+    { id: 'medical_history', label: 'Clinical Medical History' },
+    { id: 'vitals', label: 'Real-time Biometric Vitals' },
+    { id: 'financial_records', label: 'Institutional Financial Records' },
+    { id: 'claims_history', label: 'Liability Claims & Evidence' },
 ];
 
 export const PURPOSES: Purpose[] = [
