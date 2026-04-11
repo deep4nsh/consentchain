@@ -95,7 +95,7 @@ export default function Dashboard() {
             const signedGroups = await signTransactions(txns.map(t => t.toByte()));
             
             // 3. Submit
-            const base64SignedTxns = signedGroups.map(txn => Buffer.from(txn).toString('base64'));
+            const base64SignedTxns = (signedGroups.filter(Boolean) as Uint8Array[]).map(txn => Buffer.from(txn).toString('base64'));
             const submitRes = await fetch('/api/consent/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

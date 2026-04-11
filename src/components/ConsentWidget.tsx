@@ -70,7 +70,7 @@ export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidg
             }
 
             // STEP 3: Submit
-            const base64SignedTxns = signedTxnGroups.filter(Boolean).map((arrIdx: any) => Buffer.from(arrIdx).toString('base64'));
+            const base64SignedTxns = (signedTxnGroups.filter(Boolean) as Uint8Array[]).map((arrIdx) => Buffer.from(arrIdx).toString('base64'));
 
             const submitRes = await fetch('/api/consent/submit', {
                 method: 'POST',
