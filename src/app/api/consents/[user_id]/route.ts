@@ -4,7 +4,7 @@ import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
 import rateLimit from '@/lib/rateLimit';
 
-const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
+const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
 export async function GET(
     request: Request,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wallet, TrendingUp, ArrowUpRight, DollarSign, ShieldCheck, Eye, EyeOff, LayoutPanelLeft, Clock } from 'lucide-react';
 import ConsentWidget from '@/components/ConsentWidget';
@@ -8,7 +8,7 @@ import { useWallet } from '@txnlab/use-wallet-react';
 import { ConsentChainSDK } from '@/lib/sdk';
 import { algodClient, indexerClient } from '@/lib/algorand';
 
-const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0');
+const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 const ORG_ID = 'meta_finance';
 
 export default function MetaFinanceHub() {
@@ -17,8 +17,8 @@ export default function MetaFinanceHub() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showBalance, setShowBalance] = useState<boolean>(false);
 
-    // Initialize SDK
-    const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
+    // Initialize SDK (memoize to prevent re-creation on every render)
+    const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
 
     // Check initial consent status
     useEffect(() => {

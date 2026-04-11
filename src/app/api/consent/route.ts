@@ -4,7 +4,7 @@ import { algodClient, indexerClient } from '@/lib/algorand';
 import rateLimit from '@/lib/rateLimit';
 import { ConsentChainSDK } from '@/lib/sdk';
 
-const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
+const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
 // Initialize SDK instance
 const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);

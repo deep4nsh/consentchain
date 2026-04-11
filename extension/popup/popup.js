@@ -117,15 +117,24 @@ async function checkSitePermission(orgId) {
         
         if (data.success && data.consents) {
             const hasConsent = data.consents.some(c => c.organization_id === orgId && c.status === 'active');
+            // Use textContent instead of innerHTML to prevent XSS from malicious meta tags
+            siteStatusText.textContent = '';
+            const statusSpan = document.createElement('span');
             if (hasConsent) {
-                siteStatusText.innerHTML = '<span style="color: #10b981;">● Authorized</span>: Site has active ledger access.';
+                statusSpan.style.color = '#10b981';
+                statusSpan.textContent = '● Authorized';
+                siteStatusText.appendChild(statusSpan);
+                siteStatusText.appendChild(document.createTextNode(': Site has active ledger access.'));
                 revokeBtn.style.display = 'block';
                 revokeBtn.onclick = () => {
-                    const dashboardUrl = `https://consentchain-vert.vercel.app/dashboard?revoke=${orgId}`;
+                    const dashboardUrl = `https://consentchain-vert.vercel.app/dashboard?revoke=${encodeURIComponent(orgId)}`;
                     chrome.tabs.create({ url: dashboardUrl });
                 };
             } else {
-                siteStatusText.innerHTML = '<span style="color: #64748b;">○ Unauthorized</span>: No active consent detected.';
+                statusSpan.style.color = '#64748b';
+                statusSpan.textContent = '○ Unauthorized';
+                siteStatusText.appendChild(statusSpan);
+                siteStatusText.appendChild(document.createTextNode(': No active consent detected.'));
                 revokeBtn.style.display = 'none';
             }
         }

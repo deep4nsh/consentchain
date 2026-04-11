@@ -9,7 +9,7 @@ import { ORGANIZATIONS, resolveOrganizationName } from '@/lib/constants';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ConsentMap from '@/components/ConsentMap';
 
-const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
+const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
 interface ConsentRecord {
     transactionId: string;
@@ -257,7 +257,23 @@ function DashboardContent() {
                 <motion.div variants={itemVariants} className="w-full max-w-5xl glass-card rounded-3xl p-20 text-center border-dashed border-white/5">
                     <Database className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                     <h2 className="text-xl font-bold mb-2 text-gray-300">Clean Slate</h2>
-                    <p className="text-gray-500 font-light">You haven't granted any data permissions yet.</p>
+                    <p className="text-gray-500 font-light mb-8">You haven't granted any data permissions yet.</p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <a
+                            href="/demo"
+                            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all hover:scale-105"
+                        >
+                            Grant Your First Consent
+                        </a>
+                        <a
+                            href="https://bank.testnet.algorand.network/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-6 py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl font-bold text-sm hover:bg-white/10 transition-all hover:text-white"
+                        >
+                            Get Test ALGO (Faucet) ↗
+                        </a>
+                    </div>
                 </motion.div>
             ) : (
                 <div className="w-full max-w-5xl flex flex-col items-center">
