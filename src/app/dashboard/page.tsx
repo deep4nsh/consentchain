@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, BadgeCheck, ExternalLink, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@txnlab/use-wallet-react';
@@ -23,7 +23,7 @@ interface ConsentRecord {
     status: 'active' | 'expired' | 'revoked';
 }
 
-export default function Dashboard() {
+function DashboardContent() {
     const { activeAddress: accountAddress, signTransactions } = useWallet();
     const [mounted, setMounted] = useState(false);
     const [consents, setConsents] = useState<ConsentRecord[]>([]);
@@ -380,5 +380,20 @@ export default function Dashboard() {
                 </div>
             )}
         </motion.main>
+    );
+}
+
+export default function Dashboard() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#020617]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+                    <p className="text-gray-500 font-medium animate-pulse">Initializing Security Vault...</p>
+                </div>
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
     );
 }
