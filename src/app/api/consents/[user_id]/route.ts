@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import algosdk from 'algosdk';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
 
@@ -16,6 +17,13 @@ export async function GET(
 
         if (!userId) {
             return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
+        }
+
+        // Bug #3: Validate Algorand address format
+        try {
+            algosdk.decodeAddress(userId);
+        } catch {
+            return NextResponse.json({ success: false, error: 'Invalid Algorand wallet address.' }, { status: 400 });
         }
 
         if (!effectiveAppId) {

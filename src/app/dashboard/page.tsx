@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, BadgeCheck, ExternalLink, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { parseAlgorandError } from '@/lib/errorParser';
 import { ORGANIZATIONS, resolveOrganizationName } from '@/lib/constants';
-import { ConsentChainSDK } from '@/lib/sdk/core';
-import { algodClient, indexerClient } from '@/lib/algorand';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ConsentMap from '@/components/ConsentMap';
 
@@ -33,6 +31,8 @@ function DashboardContent() {
     const [auditLogs, setAuditLogs] = useState<string[]>([]);
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncSuccess, setSyncSuccess] = useState(false);
+    // Track whether auto-revoke has been attempted to prevent infinite loops
+    const [autoRevokeHandled, setAutoRevokeHandled] = useState(false);
 
     const addAuditLog = (msg: string) => {
         setAuditLogs(prev => [msg, ...prev].slice(0, 5));
@@ -45,24 +45,7 @@ function DashboardContent() {
         setMounted(true);
     }, []);
 
-    // Handle Auto-Revoke deep link
-    useEffect(() => {
-        const revokeOrgId = searchParams.get('revoke');
-        if (mounted && revokeOrgId && accountAddress && consents.length > 0) {
-            // Check if this org actually has an active consent
-            const hasActive = consents.some(c => c.organization_id === revokeOrgId && c.status === 'active');
-            if (hasActive) {
-                addAuditLog(`Auto-Revoke triggered for ${revokeOrgId}`);
-                handleRevoke(revokeOrgId);
-                // Clear the param
-                const params = new URLSearchParams(searchParams.toString());
-                params.delete('revoke');
-                router.replace(`/dashboard?${params.toString()}`);
-            }
-        }
-    }, [mounted, searchParams, accountAddress, consents]);
-
-    const fetchConsents = async () => {
+    const fetchConsents = useCallback(async () => {
         if (!accountAddress) return;
 
         try {
@@ -78,24 +61,37 @@ function DashboardContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [accountAddress]);
 
-    const handleRevoke = async (organizationId: string) => {
+    const handleRevoke = useCallback(async (organizationId: string) => {
         if (!accountAddress) return;
         try {
             setRevokingId(organizationId);
             setError(null);
 
-            const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
+            // Use the server-side revoke API instead of importing SDK client-side
+            // This avoids importing Node.js crypto module in the browser
+            const buildRes = await fetch('/api/consent/revoke', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: accountAddress, organization_id: organizationId })
+            });
+
+            const buildData = await buildRes.json();
+            if (!buildData.success) throw new Error(buildData.error);
+
+            // Sign the transaction(s)
+            const unsignedTxnsBase64 = buildData.txns as string[];
+            const uint8ArrayTxns = unsignedTxnsBase64.map((b64: string) => new Uint8Array(Buffer.from(b64, 'base64')));
+            const signedGroups = await signTransactions(uint8ArrayTxns);
             
-            // 1. Prepare Revocation Transaction group using SDK
-            const txns = await sdk.prepareRevoke(accountAddress, organizationId);
-            
-            // 2. Sign Transaction(s)
-            const signedGroups = await signTransactions(txns.map(t => t.toByte()));
-            
-            // 3. Submit
+            // Filter nulls and convert to base64
             const base64SignedTxns = (signedGroups.filter(Boolean) as Uint8Array[]).map(txn => Buffer.from(txn).toString('base64'));
+            
+            if (base64SignedTxns.length === 0) {
+                throw new Error("Transaction signing returned no signed transactions.");
+            }
+
             const submitRes = await fetch('/api/consent/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -105,7 +101,7 @@ function DashboardContent() {
             const submitData = await submitRes.json();
             if (!submitData.success) throw new Error(submitData.error);
 
-            addAuditLog(`Revoked: Success for ${organizationId}. TxID: ${submitData.txId.substring(0, 8)}`);
+            addAuditLog(`Revoked: Success for ${organizationId}. TxID: ${submitData.transactionId?.substring(0, 8) || 'confirmed'}`);
             
             // Wait a moment for the indexer/algod to catch up
             setTimeout(() => fetchConsents(), 2000);
@@ -114,7 +110,25 @@ function DashboardContent() {
         } finally {
             setRevokingId(null);
         }
-    };
+    }, [accountAddress, signTransactions, fetchConsents]);
+
+    // Handle Auto-Revoke deep link — runs only once per page load
+    useEffect(() => {
+        if (autoRevokeHandled) return;
+        const revokeOrgId = searchParams.get('revoke');
+        if (mounted && revokeOrgId && accountAddress && consents.length > 0) {
+            const hasActive = consents.some(c => c.organization_id === revokeOrgId && c.status === 'active');
+            if (hasActive) {
+                setAutoRevokeHandled(true); // Prevent re-triggering
+                addAuditLog(`Auto-Revoke triggered for ${revokeOrgId}`);
+                handleRevoke(revokeOrgId);
+                // Clear the param
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete('revoke');
+                router.replace(`/dashboard?${params.toString()}`);
+            }
+        }
+    }, [mounted, searchParams, accountAddress, consents, autoRevokeHandled, handleRevoke, router]);
 
     const handleSync = () => {
         if (!accountAddress || typeof window === 'undefined') return;
@@ -126,7 +140,7 @@ function DashboardContent() {
         window.postMessage({ 
             type: 'SENTINEL_SYNC_IDENTITY', 
             address: accountAddress 
-        }, '*');
+        }, window.location.origin);
 
         // Automatic fallback for sync UI state
         setTimeout(() => {
@@ -137,6 +151,8 @@ function DashboardContent() {
     // Listen for sync success from extension context
     useEffect(() => {
         const handleSyncSuccess = (event: MessageEvent) => {
+            // Only accept messages from our own origin
+            if (event.origin !== window.location.origin) return;
             if (event.data.type === 'SENTINEL_SYNC_SUCCESS') {
                 setSyncSuccess(true);
                 addAuditLog("Sentinel: Connection established successfully.");
@@ -154,7 +170,7 @@ function DashboardContent() {
         } else {
             setConsents([]);
         }
-    }, [mounted, accountAddress]);
+    }, [mounted, accountAddress, fetchConsents]);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -212,10 +228,11 @@ function DashboardContent() {
                 )}
             </motion.div>
 
+            {/* Bug #2 fixed: Use text content instead of dangerouslySetInnerHTML to prevent XSS */}
             {error && (
                 <div className="w-full max-w-5xl bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl mb-8 text-sm flex items-start gap-3">
                     <BadgeAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                    <div dangerouslySetInnerHTML={{ __html: error }} />
+                    <p>{error}</p>
                 </div>
             )}
 
@@ -318,7 +335,11 @@ function DashboardContent() {
                                             <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold flex items-center gap-1.5">
                                                 <Clock className="w-3 h-3 text-indigo-400" /> Granted
                                             </div>
-                                            <div className="text-xs font-medium text-gray-300">{new Date(consent.consent_timestamp).toLocaleDateString()}</div>
+                                            <div className="text-xs font-medium text-gray-300">
+                                                {consent.consent_timestamp && consent.consent_timestamp !== 'Unknown'
+                                                    ? new Date(consent.consent_timestamp).toLocaleDateString()
+                                                    : 'Unknown'}
+                                            </div>
                                         </div>
                                         <div className="space-y-1">
                                             <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold flex items-center gap-1.5">

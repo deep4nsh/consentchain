@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
 import { Shield, Lock, CheckCircle, Activity, FileText, User, Search, Play, AlertCircle } from 'lucide-react';
@@ -14,8 +14,8 @@ export default function HospitalPortal() {
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
 
-  const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
-  const ORG_ID = 'apollo-health-demo';
+  const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
+  const ORG_ID = 'health-vault-demo';
 
   // Listen for Sentinel Extension signals
   useEffect(() => {
@@ -40,8 +40,8 @@ export default function HospitalPortal() {
     if (!userAddress) return;
     setIsVerifying(true);
     try {
-      const verified = await sdk.verifyConsent(userAddress, ORG_ID);
-      if (verified) {
+      const result = await sdk.verifyConsent(userAddress, ORG_ID);
+      if (result.isActive) {
         setIsLocked(false);
         setStatus('verified');
       } else {

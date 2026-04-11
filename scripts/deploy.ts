@@ -64,14 +64,16 @@ async function deploy() {
         console.log("Sending Transaction...");
         const txResponse = await algodClient.sendRawTransaction(signedTxn).do();
 
+        // Support both old and new SDK versions (Bug #31 fix)
+        const txId = (txResponse as any).txId || txResponse.txid;
         console.log("Waiting for confirmation...");
-        const txResult = await algosdk.waitForConfirmation(algodClient, txResponse.txid, 4);
+        const txResult = await algosdk.waitForConfirmation(algodClient, txId, 4);
 
         const appId = txResult.applicationIndex;
         console.log(`\n================================`);
         console.log(`✅ Smart Contract Deployed Successfully!`);
         console.log(`App ID: ${appId}`);
-        console.log(`Transaction ID: ${txResponse.txid}`);
+        console.log(`Transaction ID: ${txId}`);
         console.log(`================================\n`);
 
         console.log(`Please add the following to your .env.local:`);

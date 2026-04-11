@@ -247,7 +247,7 @@ export default function BlogPage() {
           transition={{ duration: 0.5 }}
           className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-10 text-center relative overflow-hidden"
         >
-          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>
+          <div className="absolute inset-0 opacity-20 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }}></div>
           <h2 className="text-3xl font-bold text-white mb-4 relative z-10">Stop Trusting. Start Verifying.</h2>
           <p className="text-purple-100 mb-8 max-w-xl mx-auto relative z-10">
             Take control of your digital identity today or integrate transparent consent into your organization's infrastructure.

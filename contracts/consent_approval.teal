@@ -83,6 +83,13 @@ int 3
 ==
 assert
 
+// Bug #20 fixed: Verify this is part of a valid group transaction
+// The grant should be in a group of at least 2 txns (payment + app call)
+global GroupSize
+int 2
+>=
+assert
+
 // Store in Box Storage (Scalable)
 // Box Key: Sender Address (32 bytes) + OrgID
 txn Sender

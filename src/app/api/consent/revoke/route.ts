@@ -20,30 +20,40 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
         }
 
+        // Bug #3: Validate Algorand address format
+        try {
+            algosdk.decodeAddress(user_id);
+        } catch {
+            return NextResponse.json({ success: false, error: 'Invalid Algorand wallet address.' }, { status: 400 });
+        }
+
         if (!APP_ID) {
             throw new Error("Smart Contract APP_ID is not configured.");
         }
 
         const suggestedParams = await algodClient.getTransactionParams().do();
 
-        // 1. App arguments for Revocation:
-        // arg0: "Revoke"
-        // arg1: Key (Organization ID)
-        const keyBytes = new Uint8Array(Buffer.from(organization_id));
+        // Bug #6 fixed: Include box reference so the AVM can find the box to delete
+        const orgIdBytes = new Uint8Array(Buffer.from(organization_id));
+        const userPubKey = algosdk.decodeAddress(user_id).publicKey;
+        const boxName = new Uint8Array([...userPubKey, ...orgIdBytes]);
+
         const appArgs = [
             new Uint8Array(Buffer.from("Revoke")),
-            keyBytes
+            orgIdBytes
         ];
 
-        // 2. Create NoOp Transaction
         const txn = algosdk.makeApplicationNoOpTxnFromObject({
             sender: user_id,
             appIndex: APP_ID,
             appArgs,
             suggestedParams,
+            boxes: [
+                { appIndex: APP_ID, name: boxName }
+            ]
         });
 
-        // 3. Convert to base64 for the frontend to digest
+        // Convert to base64 for the frontend to digest
         const base64Txns = [Buffer.from(txn.toByte()).toString('base64')];
 
         return NextResponse.json({

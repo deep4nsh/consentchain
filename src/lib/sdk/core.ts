@@ -6,6 +6,18 @@ export interface BoxReference {
   name: Uint8Array;
 }
 
+export interface VerifyConsentResult {
+  exists: boolean;
+  isExpired: boolean;
+  isActive: boolean;
+  payload?: {
+    data_scope: string;
+    purpose: string;
+    expiry_date: string;
+    consent_timestamp?: string;
+  };
+}
+
 export class ConsentChainSDK {
   private algodClient: algosdk.Algodv2;
   private indexerClient: algosdk.Indexer;
@@ -89,7 +101,7 @@ export class ConsentChainSDK {
 
     return {
       txns,
-      consentHash: generateConsentHash(payload),
+      consentHash: await generateConsentHash(payload),
       mbr_microalgos: mbrMicroAlgos
     };
   }
@@ -121,8 +133,9 @@ export class ConsentChainSDK {
 
   /**
    * Verifies consent for a user-org pair by querying the blockchain directly.
+   * Returns a structured result with explicit boolean fields.
    */
-  async verifyConsent(userAddress: string, orgId: string) {
+  async verifyConsent(userAddress: string, orgId: string): Promise<VerifyConsentResult> {
     const orgIdBytes = new Uint8Array(Buffer.from(orgId));
     const userPubKey = algosdk.decodeAddress(userAddress).publicKey;
     const boxName = new Uint8Array([...userPubKey, ...orgIdBytes]);
@@ -137,15 +150,17 @@ export class ConsentChainSDK {
       return {
         exists: true,
         isExpired,
+        isActive: !isExpired,
         payload: {
           data_scope: data.s,
           purpose: data.p,
-          expiry_date: new Date(data.e).toISOString()
+          expiry_date: new Date(data.e).toISOString(),
+          consent_timestamp: data.t ? new Date(data.t).toISOString() : undefined
         }
       };
     } catch (err: any) {
       if (err.message && err.message.includes('404')) {
-        return { exists: false, isExpired: true };
+        return { exists: false, isExpired: true, isActive: false };
       }
       throw err;
     }
@@ -184,12 +199,17 @@ export class ConsentChainSDK {
           const expiry = data.e ? new Date(data.e) : new Date(data.exp);
           const isExpired = expiry < new Date();
 
+          // Use stored grant timestamp, falling back to undefined (not fake "now")
+          const grantTimestamp = data.t
+            ? new Date(data.t).toISOString()
+            : (data.timestamp || undefined);
+
           consents.push({
             transactionId: 'BoxVerified',
             organization_id: orgId,
             data_scope: data.s || data.scopes || '',
             purpose: data.p || data.purpose || '',
-            consent_timestamp: data.timestamp || new Date().toISOString(),
+            consent_timestamp: grantTimestamp || 'Unknown',
             expiry_date: expiry.toISOString(),
             status: isExpired ? 'expired' : 'active'
           });
@@ -216,12 +236,16 @@ export class ConsentChainSDK {
           const expiry = data.e ? new Date(data.e) : new Date(data.exp);
           const isExpired = expiry < new Date();
 
+          const grantTimestamp = data.t
+            ? new Date(data.t).toISOString()
+            : (data.timestamp || 'Unknown');
+
           consents.push({
             transactionId: 'LegacyLocalState',
             organization_id: orgId,
             data_scope: data.s || data.scopes || '',
             purpose: data.p || data.purpose || '',
-            consent_timestamp: data.timestamp || new Date().toISOString(),
+            consent_timestamp: grantTimestamp,
             expiry_date: expiry.toISOString(),
             status: isExpired ? 'expired' : 'active'
           });

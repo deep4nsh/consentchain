@@ -25,7 +25,7 @@ export default function PartnersLayout({
               Apollo Health
             </a>
             <a 
-              href="/partners/meta-finance" 
+              href="/partners/metafinance" 
               className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all hover:bg-white/5 active:scale-95 text-emerald-500"
             >
               Meta Finance

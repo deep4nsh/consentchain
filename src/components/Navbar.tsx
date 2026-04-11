@@ -170,12 +170,13 @@ export default function Navbar() {
             {/* Wallet Selector Modal */}
             <AnimatePresence>
                 {isWalletModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={() => { setIsWalletModalOpen(false); setShowAllWallets(false); }}>
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                             className="bg-[#0a0a0c] border border-white/10 shadow-2xl w-full max-w-[340px] rounded-[2rem] overflow-hidden relative"
+                            onClick={(e) => e.stopPropagation()}
                         >
                             {/* Decorative background glow */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-blue-500/20 blur-[60px] pointer-events-none" />

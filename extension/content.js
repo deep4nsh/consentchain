@@ -5,8 +5,21 @@
 
 // Partner detection is now dynamic via <meta name="consentchain-org-id" content="...">
 
-
 let currentNonce = null;
+
+// Bug #4: Define allowed origins for postMessage communication
+const ALLOWED_ORIGINS = [
+  'https://consentchain-vert.vercel.app',
+  'https://banking-demo-coral.vercel.app',
+  'https://insurance-demo-inky.vercel.app',
+  'https://medical-demo-theta.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001'
+];
+
+function isAllowedOrigin(origin) {
+  return ALLOWED_ORIGINS.includes(origin) || origin === window.location.origin;
+}
 
 async function checkAndSignal() {
   // Try to find the orgId and appId from meta tags
@@ -20,12 +33,12 @@ async function checkAndSignal() {
   // 1. Generate Nonce for secure handshake
   currentNonce = Math.random().toString(36).substring(2, 15);
 
-  // 2. Alert the page with a challenge
+  // 2. Alert the page with a challenge — use specific origin instead of '*'
   window.postMessage({ 
     type: 'CONSENT_CHALLENGE', 
     nonce: currentNonce,
     version: '2.0.0'
-  }, '*');
+  }, window.location.origin);
 
   // 3. Get user address from extension storage
   const { userAddress } = await chrome.storage.local.get('userAddress');
@@ -50,7 +63,7 @@ async function checkAndSignal() {
         verified: isVerified,
         nonce: currentNonce,
         source: 'sentinel-extension'
-      }, '*');
+      }, window.location.origin);
 
       injectBadge(isVerified);
     }
@@ -64,7 +77,7 @@ function injectBadge(verified, label = null) {
   const badge = document.createElement('div');
   badge.id = 'sentinel-badge';
   
-    // V2 Styles: Premium Glassmorphism
+    // Bug #23 fixed: Animation name matches the keyframes definition
     badge.style.cssText = `
         position: fixed;
         bottom: 32px;
@@ -86,7 +99,7 @@ function injectBadge(verified, label = null) {
         gap: 12px;
         z-index: 9999999;
         border: 1px solid ${verified ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255,255,255,0.1)'};
-        animation: premiumSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         cursor: pointer;
         transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         user-select: none;
@@ -126,6 +139,7 @@ function injectBadge(verified, label = null) {
     }
   });
 
+  // Bug #23 fixed: keyframes name matches the animation property above
   const style = document.createElement('style');
   style.innerHTML = `
     @keyframes slideUp {
@@ -149,6 +163,9 @@ chrome.runtime.onMessage.addListener((request) => {
 
 // Secure Handshake listeners
 window.addEventListener('message', (event) => {
+    // Bug #4: Check origin before processing messages
+    if (!isAllowedOrigin(event.origin)) return;
+
     // 1. Handshake ACK
     if (event.data.type === 'CONSENT_ACK' && event.data.nonce === currentNonce) {
         // Handshake established
@@ -164,8 +181,8 @@ window.addEventListener('message', (event) => {
                 address 
             }, (response) => {
                 if (response?.success) {
-                    // Optional: Signal success back to the dashboard if needed
-                    window.postMessage({ type: 'SENTINEL_SYNC_SUCCESS' }, '*');
+                    // Signal success back to the dashboard
+                    window.postMessage({ type: 'SENTINEL_SYNC_SUCCESS' }, event.origin);
                 }
             });
         }

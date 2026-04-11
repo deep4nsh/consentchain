@@ -2,7 +2,7 @@ import algosdk from 'algosdk';
 
 const algodToken = process.env.ALGOD_TOKEN || '';
 const algodServer = process.env.NEXT_PUBLIC_ALGOD_SERVER || 'https://testnet-api.algonode.cloud';
-const algodPort = process.env.ALGOD_PORT || 443;
+const algodPort = parseInt(process.env.ALGOD_PORT || '443', 10);
 
 const indexerServer = process.env.NEXT_PUBLIC_INDEXER_SERVER || 'https://testnet-idx.algonode.cloud';
 

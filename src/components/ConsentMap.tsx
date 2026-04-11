@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useLayoutEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Building2, User, Activity } from 'lucide-react';
 import { ORGANIZATIONS } from '@/lib/constants';
@@ -14,14 +14,32 @@ interface ConsentMapProps {
 }
 
 export default function ConsentMap({ activeAddress, consents }: ConsentMapProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
     const activeConsents = useMemo(() => 
         consents.filter(c => c.status?.toLowerCase() === 'active'),
     [consents]);
 
-    // Positions for organizations in a circle
+    // Measure the actual container to compute pixel coordinates for SVG
+    useLayoutEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setContainerSize({
+                    width: entry.contentRect.width,
+                    height: entry.contentRect.height
+                });
+            }
+        });
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    // Positions for organizations in a circle using pixel coordinates
     const getOrgPosition = (index: number, total: number) => {
         const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
-        const radius = 140; // Desktop radius
+        const radius = 140;
         return {
             x: Math.cos(angle) * radius,
             y: Math.sin(angle) * radius
@@ -30,15 +48,18 @@ export default function ConsentMap({ activeAddress, consents }: ConsentMapProps)
 
     if (!activeAddress) return null;
 
+    const cx = containerSize.width / 2;
+    const cy = containerSize.height / 2;
+
     return (
-        <div className="relative w-full max-w-2xl h-[400px] flex items-center justify-center mb-12">
+        <div ref={containerRef} className="relative w-full max-w-2xl h-[400px] flex items-center justify-center mb-12">
             {/* Background Glow */}
             <div className="absolute inset-0 bg-blue-500/5 blur-[100px] rounded-full" />
             
-            {/* Connections */}
+            {/* Connections — use pixel coordinates instead of CSS calc() */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none">
                 <AnimatePresence>
-                    {activeConsents.map((consent, i) => {
+                    {containerSize.width > 0 && activeConsents.map((consent, i) => {
                         const pos = getOrgPosition(i, activeConsents.length || 1);
                         return (
                             <motion.line
@@ -46,10 +67,10 @@ export default function ConsentMap({ activeAddress, consents }: ConsentMapProps)
                                 initial={{ pathLength: 0, opacity: 0 }}
                                 animate={{ pathLength: 1, opacity: 0.4 }}
                                 exit={{ opacity: 0 }}
-                                x1="50%"
-                                y1="50%"
-                                x2={`calc(50% + ${pos.x}px)`}
-                                y2={`calc(50% + ${pos.y}px)`}
+                                x1={cx}
+                                y1={cy}
+                                x2={cx + pos.x}
+                                y2={cy + pos.y}
                                 stroke="url(#lineGradient)"
                                 strokeWidth="2"
                                 strokeDasharray="4 4"

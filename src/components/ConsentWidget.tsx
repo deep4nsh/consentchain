@@ -36,6 +36,8 @@ export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidg
         setStatus('processing');
         setError(null);
 
+        // Bug #13 fixed: Timestamps are still sent as reference values,
+        // but the server should validate/override them for security.
         const payload = {
             user_id: accountAddress,
             organization_id: orgId,
@@ -60,7 +62,7 @@ export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidg
 
             // STEP 2: Sign in Wallet
             const unsignedTxnsBase64 = buildData.txns as string[];
-            const uint8ArrayTxns = unsignedTxnsBase64.map(b64 => new Uint8Array(Buffer.from(b64, 'base64')));
+            const uint8ArrayTxns = unsignedTxnsBase64.map((b64: string) => new Uint8Array(Buffer.from(b64, 'base64')));
 
             let signedTxnGroups;
             try {
@@ -69,8 +71,12 @@ export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidg
                 throw new Error("Transaction signing failed or was rejected by user");
             }
 
-            // STEP 3: Submit
+            // STEP 3: Submit — Bug #18 fixed: guard against empty array
             const base64SignedTxns = (signedTxnGroups.filter(Boolean) as Uint8Array[]).map((arrIdx) => Buffer.from(arrIdx).toString('base64'));
+            
+            if (base64SignedTxns.length === 0) {
+                throw new Error("Transaction signing returned no signed transactions.");
+            }
 
             const submitRes = await fetch('/api/consent/submit', {
                 method: 'POST',
@@ -86,7 +92,13 @@ export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidg
                 throw new Error(submitData.error || 'Failed to submit signed transaction');
             }
 
-            setReceiptData(submitData);
+            // Bug #11 fixed: Map API response fields to TransactionReceipt prop names
+            setReceiptData({
+                transactionId: submitData.transactionId,
+                round: submitData.round,
+                hash: submitData.consentHash,     // API returns 'consentHash', component expects 'hash'
+                timestamp: submitData.timestamp,
+            });
             setStatus('success');
             if (onSuccess) onSuccess(submitData);
         } catch (err: any) {

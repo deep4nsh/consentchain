@@ -256,7 +256,7 @@ export default function VerifyPortal() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-1">
                                             <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Purpose</div>
-                                            <div className="text-gray-200 capitalize font-medium">{searchResult.latestConsent.purpose.replace('_', ' ')}</div>
+                                            <div className="text-gray-200 capitalize font-medium">{searchResult.latestConsent.purpose.replace(/_/g, ' ')}</div>
                                         </div>
                                         <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-1">
                                             <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Transaction ID</div>

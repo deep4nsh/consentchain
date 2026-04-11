@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
 import { Shield, Lock, CheckCircle, CreditCard, PieChart, TrendingUp, History, User, Search, Fingerprint, AlertTriangle } from 'lucide-react';
@@ -14,8 +14,8 @@ export default function BankPortal() {
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
 
-  const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
-  const ORG_ID = 'meta-finance-demo';
+  const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
+  const ORG_ID = 'finsentinel-demo';
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -38,8 +38,8 @@ export default function BankPortal() {
     if (!userAddress) return;
     setIsVerifying(true);
     try {
-      const verified = await sdk.verifyConsent(userAddress, ORG_ID);
-      if (verified) {
+      const result = await sdk.verifyConsent(userAddress, ORG_ID);
+      if (result.isActive) {
         setIsLocked(false);
         setStatus('verified');
       } else {

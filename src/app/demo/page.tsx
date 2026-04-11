@@ -25,13 +25,13 @@ export default function IntegrationDemo() {
                     This page demonstrates how an external hospital or bank can integrate ConsentChain with just one component.
                 </p>
                 <div className="mt-8 p-4 bg-slate-900 border border-white/10 rounded-2xl font-mono text-xs text-blue-400 shadow-inner">
-                    <code>{`<ConsentWidget orgId="apollo_hospitals" />`}</code>
+                    <code>{`<ConsentWidget orgId="health-vault-demo" />`}</code>
                 </div>
             </div>
 
             {/* The Integrated Widget */}
             <ConsentWidget 
-                orgId="apollo_hospitals" 
+                orgId="health-vault-demo" 
             />
             
             <div className="mt-16 text-gray-500 text-sm flex flex-col items-center space-y-4">

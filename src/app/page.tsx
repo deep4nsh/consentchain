@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Share2, FileLock2, Database, ArrowRight } from 'lucide-react';
+import { ShieldCheck, FileLock2, Database, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   const containerVariants = {

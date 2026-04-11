@@ -33,15 +33,37 @@ async function updateBalance(address) {
     }
 }
 
+// Bug #3: Basic Algorand address validation
+function isValidAlgorandAddress(address) {
+    // Algorand addresses are 58 characters, base32 encoded
+    return address && address.length === 58 && /^[A-Z2-7]+=*$/.test(address);
+}
+
 // Save new address
 saveBtn.addEventListener('click', () => {
   const address = addressInput.value.trim();
+  
+  // Validate before saving
+  if (!isValidAlgorandAddress(address)) {
+    msg.textContent = 'Error: Invalid Algorand address format.';
+    msg.style.color = '#ef4444';
+    msg.classList.add('show');
+    setTimeout(() => {
+      msg.classList.remove('show');
+      msg.textContent = 'Success: Local Identity Synced.';
+      msg.style.color = '#10b981';
+    }, 3000);
+    return;
+  }
+
   const timestamp = new Date().toISOString();
   
   chrome.storage.local.set({ 
       userAddress: address,
       lastSync: timestamp
   }, () => {
+    msg.textContent = 'Success: Local Identity Synced.';
+    msg.style.color = '#10b981';
     msg.classList.add('show');
     syncTime.textContent = new Date(timestamp).toLocaleTimeString();
     updateBalance(address);
@@ -51,12 +73,11 @@ saveBtn.addEventListener('click', () => {
     }, 2000);
   });
 });
+
 const activeSiteCard = document.getElementById('active-site-card');
 const siteOrgIdText = document.getElementById('site-org-id');
 const siteStatusText = document.getElementById('site-status-text');
 const revokeBtn = document.getElementById('revoke-btn');
-
-// ... existing state load logic ...
 
 // Initialize site detection
 detectCurrentSite();
