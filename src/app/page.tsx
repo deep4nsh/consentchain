@@ -20,6 +20,14 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen pt-28 pb-12 overflow-x-hidden relative flex flex-col items-center">
+      {/* Premium Texture Overlay */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay z-[100]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+      
+      {/* Background Aurora */}
+      <div className="fixed inset-0 -z-50 bg-[#0a0c10]">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] animate-pulse-slow"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 blur-[120px] animate-pulse-slow" style={{ animationDelay: '-4s' }}></div>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-10 md:mt-20">
         <motion.div

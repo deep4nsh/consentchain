@@ -61,45 +61,45 @@ function injectBadge(verified, label = null) {
   const badge = document.createElement('div');
   badge.id = 'sentinel-badge';
   
-  // V2 Styles: Interactive & Modern
-  badge.style.cssText = `
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    padding: 10px 18px;
-    border-radius: 16px;
-    background: ${verified ? 'rgba(16, 185, 129, 0.95)' : 'rgba(15, 23, 42, 0.95)'};
-    backdrop-filter: blur(16px);
-    color: white;
-    font-family: -apple-system, system-ui, sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 999999;
-    border: 1px solid rgba(255,255,255,0.1);
-    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    user-select: none;
-  `;
+    // V2 Styles: Premium Glassmorphism
+    badge.style.cssText = `
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        padding: 12px 20px;
+        border-radius: 20px;
+        background: ${verified ? 'rgba(16, 185, 129, 0.15)' : 'rgba(15, 23, 42, 0.4)'};
+        backdrop-filter: blur(28px);
+        color: white;
+        font-family: 'Outfit', -apple-system, system-ui, sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 9999999;
+        border: 1px solid ${verified ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'};
+        animation: premiumSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        user-select: none;
+    `;
 
-  badge.innerHTML = `
-    <div style="width: 8px; height: 8px; border-radius: 50%; background: #fff; ${verified ? 'box-shadow: 0 0 10px #fff;' : 'opacity: 0.3;'}"></div>
-    <div style="display: flex; flex-direction: column;">
-        <span style="font-size: 9px; opacity: 0.7; margin-bottom: -1px;">SENTINEL V2</span>
-        <span>${label || (verified ? 'SECURED' : 'UNAUTHORIZED')}</span>
-    </div>
-    ${!verified ? `
-        <div style="margin-left: 10px; padding: 4px 8px; background: rgba(255,255,255,0.1); border-radius: 6px; font-size: 9px; hover:background: rgba(255,255,255,0.2);">
-            REQUEST
+    badge.innerHTML = `
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: ${verified ? '#10b981' : '#fff'}; ${verified ? 'box-shadow: 0 0 15px #10b981;' : 'opacity: 0.3;'}"></div>
+        <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 9px; opacity: 0.5; margin-bottom: -1px; font-weight: 800;">PROTOCOL</span>
+            <span style="letter-spacing: 0.05em;">${label || (verified ? 'SECURED' : 'UNAUTHORIZED')}</span>
         </div>
-    ` : ''}
-  `;
+        ${!verified ? `
+            <div style="margin-left: 10px; padding: 5px 10px; background: rgba(255,255,255,0.08); border-radius: 10px; font-size: 10px; font-weight: 900; color: #fff;">
+                REQUEST
+            </div>
+        ` : ''}
+    `;
 
   badge.addEventListener('mouseenter', () => {
     badge.style.transform = 'translateY(-2px) scale(1.02)';
@@ -110,15 +110,15 @@ function injectBadge(verified, label = null) {
   });
 
   badge.addEventListener('click', () => {
-    // Dynamically determine the base URL (Vercel or localhost)
-    const baseUrl = window.location.origin;
+    // Redirect to the central ConsentChain production vault
+    const productionVault = 'https://consentchain-vert.vercel.app';
     
     if (!verified) {
-        // Open the demo page to grant consent
-        window.open(`${baseUrl}/demo`, '_blank');
+        // Open the demo documentation/grant info if unauthorized
+        window.open(`${productionVault}/dashboard`, '_blank');
     } else {
-        // Open the dashboard
-        window.open(`${baseUrl}/dashboard`, '_blank');
+        // Open the dashboard vault
+        window.open(`${productionVault}/dashboard`, '_blank');
     }
   });
 
@@ -146,6 +146,6 @@ chrome.runtime.onMessage.addListener((request) => {
 // Secure Handshake listener (Confirming the page is listening)
 window.addEventListener('message', (event) => {
     if (event.data.type === 'CONSENT_ACK' && event.data.nonce === currentNonce) {
-        console.log('Sentinel: Secure handshake established with partner site.');
+        // Handshake established
     }
 });

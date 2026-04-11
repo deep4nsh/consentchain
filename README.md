@@ -3,11 +3,17 @@
 ConsentChain is a decentralized consent management application built for **AlgoBharat**. It empowers users to transparently grant, track, and revoke consent for their personal data, using cryptographic proofs on the Algorand blockchain.
 
 ## Live Demo
-The application is configured to run on the **Algorand Testnet**. 
+The application is live on the **Algorand Testnet**:
+- **Main Vault**: [https://consentchain-vert.vercel.app](https://consentchain-vert.vercel.app)
+- **Banking Portal**: [https://banking-demo-coral.vercel.app](https://banking-demo-coral.vercel.app)
+- **Medical Portal**: [https://medical-demo-theta.vercel.app](https://medical-demo-theta.vercel.app)
+- **Insurance Portal**: [https://insurance-demo-inky.vercel.app](https://insurance-demo-inky.vercel.app)
 
 ## Features
 - **Immutable Audit Trails**: Every consent grant and revocation is recorded as a transaction on Algorand.
+- **Contextual Kill Switch**: Revoke data access for any partner site directly from the **Sentinel Extension** with one click.
 - **Application-Layer Expiry**: Access is duration-based. The application continuously verifies the consent timestamp against its expiry to deny access automatically when time runs out.
+- **Multi-Portal Integration**: Demonstrates seamless cross-sector protection (Medical, Banking, Insurance) using a unified on-chain identity.
 - **Granular Scopes**: Define explicit data scopes (e.g. `medical_history`, `vitals`) and purposes instead of blanket permissions.
 - **Zero-Trust UI**: Check real-time on-chain status in the verification portal.
 

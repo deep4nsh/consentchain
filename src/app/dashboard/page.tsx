@@ -8,6 +8,7 @@ import { parseAlgorandError } from '@/lib/errorParser';
 import { ORGANIZATIONS } from '@/lib/constants';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ConsentMap from '@/components/ConsentMap';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
@@ -37,9 +38,29 @@ export default function Dashboard() {
         setAuditLogs(prev => [msg, ...prev].slice(0, 5));
     };
 
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // Handle Auto-Revoke deep link
+    useEffect(() => {
+        const revokeOrgId = searchParams.get('revoke');
+        if (mounted && revokeOrgId && accountAddress && consents.length > 0) {
+            // Check if this org actually has an active consent
+            const hasActive = consents.some(c => c.organization_id === revokeOrgId && c.status === 'active');
+            if (hasActive) {
+                addAuditLog(`Auto-Revoke triggered for ${revokeOrgId}`);
+                handleRevoke(revokeOrgId);
+                // Clear the param
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete('revoke');
+                router.replace(`/dashboard?${params.toString()}`);
+            }
+        }
+    }, [mounted, searchParams, accountAddress, consents]);
 
     const fetchConsents = async () => {
         if (!accountAddress) return;

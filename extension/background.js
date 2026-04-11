@@ -14,11 +14,11 @@ async function verifyOnChain(userAddress, orgId) {
     // in the smart contract's Box storage or Local State.
     
     // Simulating SDK fetch from the main dashboard API for robustness in demo
-    const response = await fetch(`http://localhost:3000/api/consents/${userAddress}`);
+    const response = await fetch(`https://consentchain-vert.vercel.app/api/consents/${userAddress}`);
     const data = await response.json();
     
     if (data.consents) {
-      const activeConsent = data.consents.find(c => c.org === orgId);
+      const activeConsent = data.consents.find(c => c.organization_id === orgId && c.status === 'active');
       return !!activeConsent;
     }
     return false;

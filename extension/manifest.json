@@ -12,13 +12,17 @@
   ],
   "externally_connectable": {
     "matches": [
-      "http://localhost/*",
-      "https://*.vercel.app/*"
+      "https://consentchain-vert.vercel.app/*",
+      "https://banking-demo-coral.vercel.app/*",
+      "https://insurance-demo-inky.vercel.app/*",
+      "https://medical-demo-theta.vercel.app/*"
     ]
   },
   "host_permissions": [
-    "http://localhost/*",
-    "https://*.vercel.app/*"
+    "https://consentchain-vert.vercel.app/*",
+    "https://banking-demo-coral.vercel.app/*",
+    "https://insurance-demo-inky.vercel.app/*",
+    "https://medical-demo-theta.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js",

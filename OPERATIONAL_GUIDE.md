@@ -14,7 +14,7 @@ The **ConsentChain Sentinel** extension is your "Digital Passport."
 - **V2 Feature**: You don't need to copy-paste your address anymore. Proceed to the next step.
 
 ### 2. Connect & Sync Identity
-- Navigate to the [ConsentChain Dashboard](/src/app/dashboard).
+- Navigate to the [ConsentChain Dashboard](https://consentchain-vert.vercel.app/dashboard).
 - Connect your wallet (Pera, Defly, or Lute) using the **Connect Wallet** button.
 - Once connected, click the **⚡ Sync Sentinel** button in the top right.
 - **What happens?** Your wallet address is securely pushed to the extension. You will see a "Synced!" notification and a green status in the extension popup.
@@ -23,12 +23,10 @@ The **ConsentChain Sentinel** extension is your "Digital Passport."
 
 ## 🔐 Phase 2: Granting Consent (On Any Partner Site)
 
-ConsentChain is designed to be used *anywhere*. We've built two demo environments to show this in action.
-
-### 1. Visit a Partner Portal
-Go to one of our integrated demos:
-- [St. Mary's Digital Health (Hospital Demo)](/src/app/demo/hospital)
-- [MetaFinance Institutional Banking (Bank Demo)](/src/app/demo/bank)
+ConsentChain is designed to be used *anywhere*. We've built three production-grade demo environments:
+- [St. Mary's Digital Health (Medical)](https://medical-demo-theta.vercel.app/)
+- [UltraCover Underwriting (Insurance)](https://insurance-demo-inky.vercel.app/)
+- [MetaFinance Institutional Banking (Banking)](https://banking-demo-coral.vercel.app/)
 
 ### 2. Using the Consent Widget
 On these pages, you will see a **Restricted Access** screen.
@@ -77,8 +75,9 @@ The [Security Vault (Dashboard)](/src/app/dashboard) is your centralized command
 
 ## 🛠️ Phase 5: Verification (For Organizations)
 
-If you are an organization wanting to verify a user's status manually:
-- Go to the [Verification Portal](/src/app/verify).
+If you are an organization wanting to verify
+### 1. The Verification Portal
+- Go to the [Verification Portal](https://consentchain-vert.vercel.app/verify).
 - Enter the user's wallet address.
 - The portal will query the blockchain and show you exactly what data you are authorized to access and for how long.
 
