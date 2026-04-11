@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         const serverPayload = {
             ...body,
             consent_timestamp: serverTimestamp,
-            expiry_date: body.expiry_date || serverExpiry,
+            expiry_date: serverExpiry, // ALWAYS use server-calculated expiry — never trust client
         };
 
         // Use SDK to prepare the grant transactions

@@ -20,12 +20,15 @@ export default function HospitalPortal() {
   // Listen for Sentinel Extension signals
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Security check: In production, verify event.origin
+      // Only accept messages from our own origin
+      if (event.origin !== window.location.origin) return;
+
       if (event.data?.type === 'CONSENT_CHALLENGE') {
         setSentinelActive(true);
       }
       
-      if (event.data?.type === 'CONSENT_VERIFIED' && event.data?.orgId === ORG_ID) {
+      // Extension sends SENTINEL_HANDSHAKE with { verified, orgId, address }
+      if (event.data?.type === 'SENTINEL_HANDSHAKE' && event.data?.verified) {
         setIsLocked(false);
         setStatus('verified');
         setSentinelActive(true);

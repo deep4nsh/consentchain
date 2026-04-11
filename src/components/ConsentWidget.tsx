@@ -36,15 +36,13 @@ export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidg
         setStatus('processing');
         setError(null);
 
-        // Bug #13 fixed: Timestamps are still sent as reference values,
-        // but the server should validate/override them for security.
+        // Server calculates timestamps and expiry — we just send the duration
         const payload = {
             user_id: accountAddress,
             organization_id: orgId,
             data_scope: selectedScopes.join(','),
             purpose: selectedPurpose,
-            consent_timestamp: new Date().toISOString(),
-            expiry_date: new Date(Date.now() + selectedDuration * 30 * 24 * 60 * 60 * 1000).toISOString()
+            duration_months: selectedDuration,
         };
 
         try {

@@ -206,7 +206,8 @@ function DashboardContent() {
                             whileTap={{ scale: 0.95 }}
                             onClick={handleSync}
                             disabled={isSyncing}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all ${
+                            aria-label="Sync identity with Sentinel extension"
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500/50 ${
                                 syncSuccess 
                                 ? 'bg-green-500/20 border-green-500/50 text-green-400' 
                                 : 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20'
@@ -230,7 +231,7 @@ function DashboardContent() {
 
             {/* Bug #2 fixed: Use text content instead of dangerouslySetInnerHTML to prevent XSS */}
             {error && (
-                <div className="w-full max-w-5xl bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl mb-8 text-sm flex items-start gap-3">
+                <div role="alert" className="w-full max-w-5xl bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-xl mb-8 text-sm flex items-start gap-3">
                     <BadgeAlert className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <p>{error}</p>
                 </div>
@@ -371,7 +372,8 @@ function DashboardContent() {
                                         <button
                                             onClick={() => handleRevoke(consent.organization_id)}
                                             disabled={revokingId === consent.organization_id}
-                                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/20 disabled:opacity-50 text-xs font-bold group"
+                                            aria-label={`Revoke access for ${consent.organization_id}`}
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/20 disabled:opacity-50 text-xs font-bold group focus:ring-2 focus:ring-red-500/50"
                                         >
                                             {revokingId === consent.organization_id ? (
                                                 <Activity className="w-3.5 h-3.5 animate-spin" />

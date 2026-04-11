@@ -102,7 +102,8 @@ export default function Navbar() {
                         <div className="md:hidden flex items-center">
                             <button
                                 onClick={() => setIsOpen(!isOpen)}
-                                className="text-gray-300 hover:text-white focus:outline-none p-2"
+                                aria-label={isOpen ? 'Close menu' : 'Open menu'}
+                                className="text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg p-2"
                             >
                                 {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                             </button>
@@ -188,7 +189,8 @@ export default function Navbar() {
                                         setIsWalletModalOpen(false);
                                         setShowAllWallets(false);
                                     }}
-                                    className="p-2 rounded-full hover:bg-white/5 text-gray-500 hover:text-white transition-colors"
+                                    aria-label="Close wallet modal"
+                                    className="p-2 rounded-full hover:bg-white/5 text-gray-500 hover:text-white transition-colors focus:ring-2 focus:ring-blue-500/50"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import algosdk from 'algosdk';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
+import rateLimit from '@/lib/rateLimit';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '0', 10);
 
@@ -9,6 +10,13 @@ export async function GET(
     request: Request,
     context: { params: Promise<{ user_id: string }> }
 ) {
+    // Rate limit: 30 reads per minute per IP
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimitResult = rateLimit(ip, 30, 60000);
+    if (!rateLimitResult.success) {
+        return NextResponse.json({ success: false, error: 'Too many requests.' }, { status: 429 });
+    }
+
     try {
         const { user_id: userId } = await context.params;
         const { searchParams } = new URL(request.url);
