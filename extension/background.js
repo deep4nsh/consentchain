@@ -75,6 +75,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     return true; // Keep channel open for async response
   }
+
+  if (request.type === 'SYNC_ADDRESS_INTERNAL') {
+    const { address } = request;
+    chrome.storage.local.set({ userAddress: address }, () => {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: 'Sentinel Universal Sync',
+        message: `Identity updated: ${address.substring(0, 10)}...`
+      });
+      sendResponse({ success: true });
+    });
+    return true;
+  }
 });
 
 // Broadcast address changes to all tabs

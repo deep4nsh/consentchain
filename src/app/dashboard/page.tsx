@@ -116,50 +116,37 @@ function DashboardContent() {
         }
     };
 
-    const handleSync = async () => {
+    const handleSync = () => {
         if (!accountAddress || typeof window === 'undefined') return;
         
         setIsSyncing(true);
-        // Prioritize Environment Variable, fallback to known ID
-        const EXT_ID = process.env.NEXT_PUBLIC_SENTINEL_ID || "ojfmkfhlclmdlphmndklpkdlpgmndkla"; 
-        
-        try {
-            // Check if chrome API is available (only in Chrome/Brave/Edge)
-            // @ts-ignore
-            const hasChrome = !!(window.chrome && window.chrome.runtime);
-            
-            if (hasChrome) {
-                // @ts-ignore
-                window.chrome.runtime.sendMessage(EXT_ID, { 
-                    type: 'SYNC_ADDRESS', 
-                    address: accountAddress 
-                }, (response: any) => {
-                    const lastError = (window as any).chrome?.runtime?.lastError;
-                    
-                    if (lastError) {
-                        console.error("Sentinel Sync: chrome.runtime.lastError", lastError);
-                        setError("Sentinel extension not responding. Please ensure it is installed and the Extension ID matches.");
-                        setIsSyncing(false);
-                        return;
-                    }
+        console.log(`[Dashboard] Broadcasting identity sync for: ${accountAddress}`);
 
-                    if (response?.success) {
-                        setSyncSuccess(true);
-                        addAuditLog("Sentinel: Identity synced successfully.");
-                        setTimeout(() => setSyncSuccess(false), 3000);
-                    } else {
-                        setError("Sentinel returned an invalid response. Please try restarting your browser.");
-                    }
-                    setIsSyncing(false);
-                });
-            } else {
-                throw new Error("Sentinel detection failed. Ensure you are using a Chromium-based browser with the extension enabled.");
-            }
-        } catch (err: any) {
-            setError(err.message || "Could not sync with Sentinel.");
+        // Universal Handshake: Broadcast to any listening Sentinel V2 instance
+        window.postMessage({ 
+            type: 'SENTINEL_SYNC_IDENTITY', 
+            address: accountAddress 
+        }, '*');
+
+        // Automatic fallback for sync UI state
+        setTimeout(() => {
             setIsSyncing(false);
-        }
+        }, 1000);
     };
+
+    // Listen for sync success from extension context
+    useEffect(() => {
+        const handleSyncSuccess = (event: MessageEvent) => {
+            if (event.data.type === 'SENTINEL_SYNC_SUCCESS') {
+                setSyncSuccess(true);
+                addAuditLog("Sentinel: Connection established successfully.");
+                setTimeout(() => setSyncSuccess(false), 3000);
+            }
+        };
+
+        window.addEventListener('message', handleSyncSuccess);
+        return () => window.removeEventListener('message', handleSyncSuccess);
+    }, []);
 
     useEffect(() => {
         if (mounted && accountAddress) {

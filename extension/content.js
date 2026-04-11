@@ -147,9 +147,27 @@ chrome.runtime.onMessage.addListener((request) => {
   }
 });
 
-// Secure Handshake listener (Confirming the page is listening)
+// Secure Handshake listeners
 window.addEventListener('message', (event) => {
+    // 1. Handshake ACK
     if (event.data.type === 'CONSENT_ACK' && event.data.nonce === currentNonce) {
         // Handshake established
+    }
+
+    // 2. Universal Identity Sync (No Extension ID required)
+    if (event.data.type === 'SENTINEL_SYNC_IDENTITY') {
+        const { address } = event.data;
+        if (address) {
+            console.log(`[Sentinel] Universal Sync requested for: ${address}`);
+            chrome.runtime.sendMessage({ 
+                type: 'SYNC_ADDRESS_INTERNAL', 
+                address 
+            }, (response) => {
+                if (response?.success) {
+                    // Optional: Signal success back to the dashboard if needed
+                    window.postMessage({ type: 'SENTINEL_SYNC_SUCCESS' }, '*');
+                }
+            });
+        }
     }
 });
