@@ -134,7 +134,7 @@ export default function Dashboard() {
                     type: 'SYNC_ADDRESS', 
                     address: accountAddress 
                 }, (response: any) => {
-                    const lastError = window.chrome?.runtime?.lastError;
+                    const lastError = (window as any).chrome?.runtime?.lastError;
                     
                     if (lastError) {
                         console.error("Sentinel Sync: chrome.runtime.lastError", lastError);
