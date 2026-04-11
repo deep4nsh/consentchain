@@ -28,11 +28,15 @@ export default function PartnersLayout({
         </div>
         
         <div className="flex items-center space-x-4 text-sm text-gray-400">
-          <span className="flex items-center px-3 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-2 animate-pulse"></span>
-            Testnet Only
+          <div className="hidden lg:flex items-center px-4 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
+            Protocol v1.0 Active
+          </div>
+          <span className="flex items-center px-3 py-1.5 rounded-xl bg-green-500/10 text-green-400 border border-green-500/20 text-xs font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-2"></span>
+            Testnet Mode
           </span>
-          <a href="/" className="hover:text-white transition-colors">Exit Portal</a>
+          <a href="/" className="hover:text-white transition-colors font-bold text-xs">Exit Portal</a>
         </div>
       </nav>
 

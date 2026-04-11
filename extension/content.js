@@ -71,13 +71,19 @@ async function checkAndSignal() {
 }
 
 function injectBadge(verified, label = null) {
+  const metaOrg = document.querySelector('meta[name="consentchain-org-id"]');
+  const orgId = metaOrg ? metaOrg.getAttribute('content') : 'unknown';
+
   const existing = document.getElementById('sentinel-badge');
   if (existing) existing.remove();
 
   const badge = document.createElement('div');
   badge.id = 'sentinel-badge';
   
-    // Bug #23 fixed: Animation name matches the keyframes definition
+    // Check if we have an identity but just lack consent
+    const isMissingConsent = !verified && label !== 'No Identity';
+    const buttonText = label === 'No Identity' ? 'SYNC' : 'GRANT';
+
     badge.style.cssText = `
         position: fixed;
         bottom: 32px;
@@ -98,7 +104,7 @@ function injectBadge(verified, label = null) {
         align-items: center;
         gap: 12px;
         z-index: 9999999;
-        border: 1px solid ${verified ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255,255,255,0.1)'};
+        border: 1px solid ${verified ? 'rgba(16, 185, 129, 0.4)' : isMissingConsent ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255,255,255,0.1)'};
         animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         cursor: pointer;
         transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -112,29 +118,35 @@ function injectBadge(verified, label = null) {
             <span style="letter-spacing: 0.05em;">${label || (verified ? 'SECURED' : 'UNAUTHORIZED')}</span>
         </div>
         ${!verified ? `
-            <div style="margin-left: 10px; padding: 4px 8px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; font-size: 9px; font-weight: 900; color: #f59e0b;">
-                SYNC
+            <div style="margin-left: 10px; padding: 4px 10px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; font-size: 9px; font-weight: 900; color: #f59e0b; transition: all 0.2s ease;">
+                ${buttonText}
             </div>
         ` : ''}
     `;
 
   badge.addEventListener('mouseenter', () => {
     badge.style.transform = 'translateY(-2px) scale(1.02)';
+    badge.style.boxShadow = '0 25px 50px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.2)';
   });
   
   badge.addEventListener('mouseleave', () => {
     badge.style.transform = 'translateY(0) scale(1)';
+    badge.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.1)';
   });
 
   badge.addEventListener('click', () => {
-    // Redirect to the central ConsentChain production vault
     const productionVault = 'https://consentchain-vert.vercel.app';
     
     if (!verified) {
-        // Open the demo documentation/grant info if unauthorized
-        window.open(`${productionVault}/dashboard`, '_blank');
+        if (label === 'No Identity') {
+            // Need to sync identity first
+            window.open(`${productionVault}/dashboard`, '_blank');
+        } else {
+            // Identity exists but missing consent — deep link to the grant flow
+            window.open(`${productionVault}/demo?grant=${orgId}`, '_blank');
+        }
     } else {
-        // Open the dashboard vault
+        // Already verified, just open dashboard
         window.open(`${productionVault}/dashboard`, '_blank');
     }
   });

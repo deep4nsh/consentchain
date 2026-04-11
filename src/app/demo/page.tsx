@@ -2,7 +2,9 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Shield, Activity, CreditCard, Heart, ArrowRight, ExternalLink } from 'lucide-react';
+import { Shield, Activity, CreditCard, Heart, ArrowRight, ExternalLink, BadgeCheck } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useRef } from 'react';
 
 const container = {
     hidden: { opacity: 0 },
@@ -68,7 +70,17 @@ const externalPortals = [
     },
 ];
 
-export default function DemoPortalHub() {
+function DemoPortalContent() {
+    const searchParams = useSearchParams();
+    const grantTarget = searchParams.get('grant');
+    const targetRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (grantTarget && targetRef.current) {
+            targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [grantTarget]);
+
     return (
         <motion.main 
             initial="hidden"
@@ -93,38 +105,58 @@ export default function DemoPortalHub() {
 
             {/* In-App Portals */}
             <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-                {portals.map((portal) => (
-                    <motion.div key={portal.orgId} variants={item}>
-                        <Link href={portal.href} className="block group">
-                            <div className="relative glass-card rounded-3xl p-8 h-full overflow-hidden border border-white/5 hover:border-white/15 transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1">
-                                {/* Background glow */}
-                                <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${portal.color} opacity-10 blur-[60px] group-hover:opacity-20 transition-opacity duration-500`} />
-                                
-                                <div className="relative z-10">
-                                    {/* Badge */}
-                                    <span className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-6">
-                                        {portal.badge}
-                                    </span>
+                {portals.map((portal) => {
+                    const isTarget = grantTarget === portal.orgId;
+                    return (
+                        <motion.div 
+                            key={portal.orgId} 
+                            variants={item}
+                            ref={isTarget ? targetRef : null}
+                            className={isTarget ? 'relative' : ''}
+                        >
+                            {isTarget && (
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-1 rounded-full bg-blue-600 text-[10px] font-black uppercase tracking-tighter text-white animate-bounce shadow-xl shadow-blue-600/40 border border-blue-400/50">
+                                    Action Required
+                                </div>
+                            )}
+                            <Link href={portal.href} className="block group">
+                                <div className={`relative glass-card rounded-3xl p-8 h-full overflow-hidden border transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1 ${
+                                    isTarget 
+                                        ? 'border-blue-500/50 shadow-[0_0_50px_-12px_rgba(59,130,246,0.5)] ring-2 ring-blue-500/20' 
+                                        : 'border-white/5 hover:border-white/15'
+                                }`}>
+                                    {/* Background glow */}
+                                    <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${portal.color} opacity-10 blur-[60px] group-hover:opacity-20 transition-opacity duration-500`} />
                                     
-                                    {/* Icon */}
-                                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${portal.color} flex items-center justify-center mb-6 ${portal.shadow} shadow-lg group-hover:scale-110 transition-transform duration-500`}>
-                                        <portal.icon className="w-7 h-7 text-white" />
-                                    </div>
+                                    <div className="relative z-10">
+                                        {/* Badge */}
+                                        <div className="flex justify-between items-start mb-6">
+                                            <span className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                                {portal.badge}
+                                            </span>
+                                            {isTarget && <BadgeCheck className="w-5 h-5 text-blue-400 animate-pulse" />}
+                                        </div>
+                                        
+                                        {/* Icon */}
+                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${portal.color} flex items-center justify-center mb-6 ${portal.shadow} shadow-lg group-hover:scale-110 transition-transform duration-500`}>
+                                            <portal.icon className="w-7 h-7 text-white" />
+                                        </div>
 
-                                    {/* Content */}
-                                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{portal.name}</h3>
-                                    <p className="text-sm text-gray-500 leading-relaxed mb-6">{portal.description}</p>
+                                        {/* Content */}
+                                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{portal.name}</h3>
+                                        <p className="text-sm text-gray-500 leading-relaxed mb-6">{portal.description}</p>
 
-                                    {/* CTA */}
-                                    <div className="flex items-center text-sm font-bold text-gray-500 group-hover:text-white transition-colors">
-                                        <span>Enter Portal</span>
-                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                        {/* CTA */}
+                                        <div className={`flex items-center text-sm font-bold transition-colors ${isTarget ? 'text-blue-400' : 'text-gray-500'} group-hover:text-white`}>
+                                            <span>Enter Portal</span>
+                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </Link>
-                    </motion.div>
-                ))}
+                            </Link>
+                        </motion.div>
+                    );
+                })}
             </div>
 
             {/* External Standalone Demos */}
@@ -163,5 +195,17 @@ export default function DemoPortalHub() {
                 </p>
             </motion.div>
         </motion.main>
+    );
+}
+
+export default function DemoPortalHub() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Shield className="w-12 h-12 text-blue-500 animate-pulse" />
+            </div>
+        }>
+            <DemoPortalContent />
+        </Suspense>
     );
 }
