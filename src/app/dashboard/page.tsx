@@ -120,31 +120,43 @@ export default function Dashboard() {
         if (!accountAddress || typeof window === 'undefined') return;
         
         setIsSyncing(true);
-        // This is a placeholder ID. In a real environment, this is static.
-        const EXT_ID = "ojfmkfhlclmdlphmndklpkdlpgmndkla"; 
+        // Prioritize Environment Variable, fallback to known ID
+        const EXT_ID = process.env.NEXT_PUBLIC_SENTINEL_ID || "ojfmkfhlclmdlphmndklpkdlpgmndkla"; 
         
         try {
-            // @ts-ignore - chrome is available in browser context for extension communication
-            if (window.chrome?.runtime?.sendMessage) {
+            // Check if chrome API is available (only in Chrome/Brave/Edge)
+            // @ts-ignore
+            const hasChrome = !!(window.chrome && window.chrome.runtime);
+            
+            if (hasChrome) {
                 // @ts-ignore
                 window.chrome.runtime.sendMessage(EXT_ID, { 
                     type: 'SYNC_ADDRESS', 
                     address: accountAddress 
                 }, (response: any) => {
+                    const lastError = window.chrome?.runtime?.lastError;
+                    
+                    if (lastError) {
+                        console.error("Sentinel Sync: chrome.runtime.lastError", lastError);
+                        setError("Sentinel extension not responding. Please ensure it is installed and the Extension ID matches.");
+                        setIsSyncing(false);
+                        return;
+                    }
+
                     if (response?.success) {
                         setSyncSuccess(true);
                         addAuditLog("Sentinel: Identity synced successfully.");
                         setTimeout(() => setSyncSuccess(false), 3000);
                     } else {
-                        throw new Error("Extension did not respond.");
+                        setError("Sentinel returned an invalid response. Please try restarting your browser.");
                     }
+                    setIsSyncing(false);
                 });
             } else {
-                throw new Error("Sentinel extension not detected.");
+                throw new Error("Sentinel detection failed. Ensure you are using a Chromium-based browser with the extension enabled.");
             }
         } catch (err: any) {
-            setError("Could not sync with Sentinel. Ensure the extension is installed and active.");
-        } finally {
+            setError(err.message || "Could not sync with Sentinel.");
             setIsSyncing(false);
         }
     };

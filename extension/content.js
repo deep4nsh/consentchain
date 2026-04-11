@@ -37,20 +37,19 @@ async function checkAndSignal() {
   chrome.runtime.sendMessage(
     { type: 'VERIFY_PAGE', userAddress, orgId },
     (response) => {
-      if (response && response.verified) {
-        // 5. Signal the portal to auto-unlock with verified identity
-        window.postMessage({ 
-          type: 'SENTINEL_HANDSHAKE', 
-          orgId,
-          address: userAddress, // Required by core.js
-          nonce: currentNonce,
-          verifiedAt: new Date().toISOString()
-        }, '*');
+      const isVerified = response && response.verified;
+      
+      // 5. Signal the portal with standardized handshake
+      window.postMessage({ 
+        type: 'SENTINEL_HANDSHAKE', 
+        orgId,
+        address: userAddress,
+        verified: isVerified,
+        nonce: currentNonce,
+        source: 'sentinel-extension'
+      }, '*');
 
-        injectBadge(true);
-      } else {
-        injectBadge(false);
-      }
+      injectBadge(isVerified);
     }
   );
 }
@@ -69,20 +68,21 @@ function injectBadge(verified, label = null) {
         right: 32px;
         padding: 12px 20px;
         border-radius: 20px;
-        background: ${verified ? 'rgba(16, 185, 129, 0.15)' : 'rgba(15, 23, 42, 0.4)'};
-        backdrop-filter: blur(28px);
+        background: ${verified ? 'rgba(16, 185, 129, 0.1)' : 'rgba(15, 23, 42, 0.6)'};
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
         color: white;
         font-family: 'Outfit', -apple-system, system-ui, sans-serif;
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.15em;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.1);
         display: flex;
         align-items: center;
         gap: 12px;
         z-index: 9999999;
-        border: 1px solid ${verified ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'};
+        border: 1px solid ${verified ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255,255,255,0.1)'};
         animation: premiumSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         cursor: pointer;
         transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -90,14 +90,14 @@ function injectBadge(verified, label = null) {
     `;
 
     badge.innerHTML = `
-        <div style="width: 10px; height: 10px; border-radius: 50%; background: ${verified ? '#10b981' : '#fff'}; ${verified ? 'box-shadow: 0 0 15px #10b981;' : 'opacity: 0.3;'}"></div>
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: ${verified ? '#10b981' : '#f59e0b'}; ${verified ? 'box-shadow: 0 0 15px #10b981;' : 'box-shadow: 0 0 10px #f59e0b;'}"></div>
         <div style="display: flex; flex-direction: column;">
-            <span style="font-size: 9px; opacity: 0.5; margin-bottom: -1px; font-weight: 800;">PROTOCOL</span>
+            <span style="font-size: 8px; opacity: 0.5; margin-bottom: -1px; font-weight: 800; letter-spacing: 0.2em;">SENTINEL</span>
             <span style="letter-spacing: 0.05em;">${label || (verified ? 'SECURED' : 'UNAUTHORIZED')}</span>
         </div>
         ${!verified ? `
-            <div style="margin-left: 10px; padding: 5px 10px; background: rgba(255,255,255,0.08); border-radius: 10px; font-size: 10px; font-weight: 900; color: #fff;">
-                REQUEST
+            <div style="margin-left: 10px; padding: 4px 8px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; font-size: 9px; font-weight: 900; color: #f59e0b;">
+                SYNC
             </div>
         ` : ''}
     `;
