@@ -9,9 +9,11 @@
 let currentNonce = null;
 
 async function checkAndSignal() {
-  // Try to find the orgId from a meta tag
-  const metaTag = document.querySelector('meta[name="consentchain-org-id"]');
-  const orgId = metaTag ? metaTag.getAttribute('content') : null;
+  // Try to find the orgId and appId from meta tags
+  const metaOrg = document.querySelector('meta[name="consentchain-org-id"]');
+  const metaApp = document.querySelector('meta[name="consentchain-app-id"]');
+  const orgId = metaOrg ? metaOrg.getAttribute('content') : null;
+  const appId = metaApp ? metaApp.getAttribute('content') : null;
   
   if (!orgId) return;
 
@@ -33,9 +35,9 @@ async function checkAndSignal() {
     return;
   }
 
-  // 4. Request background verification
+  // 4. Request background verification with specific App ID
   chrome.runtime.sendMessage(
-    { type: 'VERIFY_PAGE', userAddress, orgId },
+    { type: 'VERIFY_PAGE', userAddress, orgId, appId },
     (response) => {
       const isVerified = response && response.verified;
       
@@ -43,6 +45,7 @@ async function checkAndSignal() {
       window.postMessage({ 
         type: 'SENTINEL_HANDSHAKE', 
         orgId,
+        appId,
         address: userAddress,
         verified: isVerified,
         nonce: currentNonce,

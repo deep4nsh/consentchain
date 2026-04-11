@@ -4,18 +4,23 @@
  */
 
 const ALGOD_SERVER = 'https://testnet-api.algonode.cloud';
-const APP_ID = 721204057; // ConsentChain Smart Contract ID (Testnet)
+// APP_ID is now dynamic via Partner Handshake
 
 // Verification Logic (Directly querying Algorand for the demo)
-async function verifyOnChain(userAddress, orgId) {
+async function verifyOnChain(userAddress, orgId, appId) {
   try {
     if (!userAddress || userAddress === 'undefined') {
       console.warn('Sentinel: No user address provided for verification.');
       return false;
     }
 
-    // Simulating SDK fetch from the main dashboard API for robustness in demo
-    const response = await fetch(`https://consentchain-vert.vercel.app/api/consents/${userAddress}`);
+    // Build API URL with dynamic App ID discovery
+    let apiUrl = `https://consentchain-vert.vercel.app/api/consents/${userAddress}`;
+    if (appId) {
+        apiUrl += `?app_id=${appId}`;
+    }
+
+    const response = await fetch(apiUrl);
     
     // Safety Check: Ensure we didn't get an HTML error page (Vercel 404/500)
     if (!response.ok) {
@@ -62,9 +67,9 @@ chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => 
 // Listen for messages from Content Scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'VERIFY_PAGE') {
-    const { userAddress, orgId } = request;
+    const { userAddress, orgId, appId } = request;
     
-    verifyOnChain(userAddress, orgId).then(isVerified => {
+    verifyOnChain(userAddress, orgId, appId).then(isVerified => {
       sendResponse({ verified: isVerified });
     });
     

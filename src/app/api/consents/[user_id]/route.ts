@@ -10,17 +10,20 @@ export async function GET(
 ) {
     try {
         const { user_id: userId } = await context.params;
+        const { searchParams } = new URL(request.url);
+        const queryAppId = searchParams.get('app_id');
+        const effectiveAppId = queryAppId ? parseInt(queryAppId, 10) : APP_ID;
 
         if (!userId) {
             return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
         }
 
-        if (!APP_ID) {
+        if (!effectiveAppId) {
             throw new Error("Smart Contract APP_ID is not configured.");
         }
 
-        // Initialize SDK
-        const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
+        // Initialize SDK with the effective App ID
+        const sdk = new ConsentChainSDK(algodClient, indexerClient, effectiveAppId);
         
         // Use SDK to list consents
         const consents = await sdk.listUserConsents(userId);
@@ -28,6 +31,7 @@ export async function GET(
         return NextResponse.json({
             success: true,
             user_id: userId,
+            app_id: effectiveAppId,
             consents,
             total: consents.length
         });
