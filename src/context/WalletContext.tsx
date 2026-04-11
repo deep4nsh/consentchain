@@ -6,8 +6,30 @@ import { algodClient } from "@/lib/algorand";
 
 // Build the wallet list dynamically, only including Magic if the API key is configured
 const walletList: any[] = [
-    WalletId.PERA,
-    WalletId.DEFLY,
+    {
+        id: WalletId.PERA,
+        options: { 
+            projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f",
+            metadata: {
+                name: "ConsentChain",
+                description: "Decentralized Consent Management on Algorand",
+                url: "https://consentchain-vert.vercel.app",
+                icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
+            }
+        }
+    },
+    {
+        id: WalletId.DEFLY,
+        options: { 
+            projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f",
+            metadata: {
+                name: "ConsentChain",
+                description: "Decentralized Consent Management on Algorand",
+                url: "https://consentchain-vert.vercel.app",
+                icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
+            }
+        }
+    },
     WalletId.LUTE,
     WalletId.EXODUS,
     WalletId.KIBISIS,
@@ -35,7 +57,24 @@ if (process.env.NEXT_PUBLIC_MAGIC_API_KEY) {
 
 // Initialize the WalletManager with desired wallets and mandatory metadata for v4
 const walletManager = new WalletManager({
-    wallets: walletList,
+    wallets: [
+        {
+            id: WalletId.WALLETCONNECT,
+            options: { 
+                projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f",
+                metadata: {
+                    name: "ConsentChain",
+                    description: "Decentralized Consent Management on Algorand",
+                    url: "https://consentchain-vert.vercel.app",
+                    icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
+                }
+            }
+        },
+        WalletId.PERA, // Keeping as fallback if library eventually updates
+        WalletId.DEFLY,
+        WalletId.LUTE,
+        WalletId.KIBISIS
+    ],
     defaultNetwork: NetworkId.TESTNET,
     networks: {
         testnet: {
