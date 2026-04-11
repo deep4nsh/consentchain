@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { ConsentChainSDK } from '@/lib/sdk/core';
+import { algodClient, indexerClient } from '@/lib/algorand';
 import { Shield, Lock, CheckCircle, CreditCard, PieChart, TrendingUp, History, User, Search, Fingerprint, AlertTriangle } from 'lucide-react';
+
+const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
 export default function BankPortal() {
   const [isLocked, setIsLocked] = useState(true);
@@ -11,7 +14,7 @@ export default function BankPortal() {
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
 
-  const sdk = new ConsentChainSDK();
+  const sdk = new ConsentChainSDK(algodClient, indexerClient, APP_ID);
   const ORG_ID = 'meta-finance-demo';
 
   useEffect(() => {
