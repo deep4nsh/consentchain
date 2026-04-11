@@ -1,6 +1,11 @@
 # ConsentChain 🧬
 
-ConsentChain is a decentralized consent management application built for **AlgoBharat**. It empowers users to transparently grant, track, and revoke consent for their personal data, using cryptographic proofs on the Algorand blockchain.
+### Immutable Data Sovereignty. Cryptographic Trust. Seamless Integration.
+
+ConsentChain is a comprehensive **Decentralized Consent Management Ecosystem**. It empowers users to transparently grant, track, and revoke consent for their personal data using cryptographic proofs on the Algorand blockchain.
+
+> [!IMPORTANT]
+> **New to the project?** Start with the [Developer Onboarding Guide](file:///Users/deepansh/consentchain/DEVELOPER_ONBOARDING.md) for a full walkthrough of the ecosystem architecture.
 
 ## Live Demo
 The application is live on the **Algorand Testnet**:
@@ -17,23 +22,37 @@ The application is live on the **Algorand Testnet**:
 - **Granular Scopes**: Define explicit data scopes (e.g. `medical_history`, `vitals`) and purposes instead of blanket permissions.
 - **Zero-Trust UI**: Check real-time on-chain status in the verification portal.
 
-## Getting Started
+## 🗺️ Ecosystem Components
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Copy environment variables:
-   ```bash
-   cp .env.example .env.local
-   # Ensure NEXT_PUBLIC_APP_ID is set to your deployed Smart Contract ID
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
+ConsentChain consists of multiple moving parts that work in harmony:
+1.  **[The Vault](https://consentchain-vert.vercel.app)**: The central dashboard for consent management.
+2.  **[The Sentinel Extension](file:///Users/deepansh/consentchain/extension)**: The browser bridge that verifies on-chain records for partner sites.
+3.  **The Demos**: Real-world integrations for [Medical](https://medical-demo-theta.vercel.app), [Banking](https://banking-demo-coral.vercel.app), and [Insurance](https://insurance-demo-inky.vercel.app).
 
-## Architectural Decisions for MVP
+---
+
+## 🚀 Quick Local Setup
+
+1.  **Clone all repositories** into a single folder.
+2.  **Dependencies**: Run `npm install` in this directory.
+3.  **Run Everything**: Execute the orchestrator script:
+    ```bash
+    chmod +x run_ecosystem.sh
+    ./run_ecosystem.sh
+    ```
+    *This will launch the Vault (3000), Medical (3001), Banking (3002), and Insurance (3003) demos in parallel.*
+
+---
+
+## 📋 Documentation Hub
+
+- **[Developer Onboarding Guide](file:///Users/deepansh/consentchain/DEVELOPER_ONBOARDING.md)**: Architecture, Handshakes, and Setup.
+- **[Architecture Visuals](file:///Users/deepansh/consentchain/architecture_visuals.md)**: Sequence diagrams of internal flows.
+- **[Project Master Spec](file:///Users/deepansh/consentchain/Project%20Master%20Spec.md)**: Core vision and pillars.
+
+---
+
+## Features
 For this hackathon MVP, we prioritized extreme speed and simplicity over boundless scalability. 
 
 **Algorand Local State Limits**: The TEAL smart contract stores consent mapping payloads strictly in the User's Local State. By Algorand protocol design, this inherently restricts each user's account to a maximum of **16 different organizations**. Trying to grant consent to a 17th organization will fail. For a production V2, this contract would be migrated to **Box Storage (AVM 8+)** to allow unbounded mappings.
