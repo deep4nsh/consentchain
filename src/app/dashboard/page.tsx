@@ -5,7 +5,7 @@ import { Shield, Clock, FileText, Database, Webhook, Activity, BadgeAlert, Badge
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '@txnlab/use-wallet-react';
 import { parseAlgorandError } from '@/lib/errorParser';
-import { ORGANIZATIONS } from '@/lib/constants';
+import { ORGANIZATIONS, resolveOrganizationName } from '@/lib/constants';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -300,7 +300,7 @@ function DashboardContent() {
                                 <div className="flex-1 space-y-4">
                                     <div className="pt-1">
                                         <h3 className="text-xl font-bold text-white mb-1">
-                                            {ORGANIZATIONS.find(o => o.id === consent.organization_id)?.name || consent.organization_id}
+                                            {resolveOrganizationName(consent.organization_id)}
                                         </h3>
                                         <p className="text-sm text-gray-400 font-light line-clamp-1">
                                             Granted for: <span className="text-gray-300 italic">"{consent.purpose}"</span>

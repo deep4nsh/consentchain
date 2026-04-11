@@ -10,6 +10,19 @@ export const ORGANIZATIONS: Organization[] = [
     { id: 'indiamart', name: 'IndiaMART B2B Net' },
 ];
 
+export const LEGACY_ORG_NAMES: Record<string, string> = {
+    'apollo_hospitals': "St. Mary's HealthVault",
+    'icici_bank': 'FinSentinel Wealth',
+    'hdfc_bank': 'FinSentinel Wealth', // Multi-mapping for common test IDs
+    'zomato_health': 'UltraCover Insurance'
+};
+
+export const resolveOrganizationName = (id: string): string => {
+    const org = ORGANIZATIONS.find(o => o.id === id);
+    if (org) return org.name;
+    return LEGACY_ORG_NAMES[id] || id;
+};
+
 export const DATA_SCOPES: DataScope[] = [
     { id: 'medical_history', label: 'Clinical Medical History' },
     { id: 'vitals', label: 'Real-time Biometric Vitals' },
