@@ -41,7 +41,7 @@ export default function ConsentCard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="glass-card rounded-2xl p-8 max-w-lg w-full relative overflow-hidden"
+            className="glass-card rounded-2xl p-4 md:p-8 max-w-lg w-full relative"
         >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
 
@@ -49,8 +49,8 @@ export default function ConsentCard({
                 <Shield className="w-8 h-8 text-blue-400" />
             </div>
 
-            <h2 className="text-2xl font-bold text-center mb-2">Consent Configuration</h2>
-            <p className="text-gray-400 text-center mb-8">
+            <h2 className="text-xl md:text-2xl font-bold text-center mb-1">Consent Configuration</h2>
+            <p className="text-gray-400 text-xs md:text-sm text-center mb-6 md:mb-8">
                 Configure the parameters for the consent you are about to grant.
             </p>
 
@@ -81,12 +81,12 @@ export default function ConsentCard({
                 </div>
 
                 {/* Data Scopes Setup */}
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4 transition-all hover:border-white/20">
+                <div className="p-4 md:p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3 md:space-y-4 transition-all hover:border-white/20">
                     <div className="flex items-center space-x-2">
                         <FileText className="w-5 h-5 text-blue-400" />
                         <p className="text-sm font-semibold text-gray-300">Data Scopes</p>
                     </div>
-                    <div className="grid grid-cols-1 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {dataScopes.map((scope) => {
                             const isSelected = selectedScopes.includes(scope.id);
                             return (
@@ -95,12 +95,12 @@ export default function ConsentCard({
                                     whileHover={{ scale: 1.01 }}
                                     whileTap={{ scale: 0.99 }}
                                     onClick={() => onScopeToggle(scope.id)}
-                                    className={`flex items-center space-x-3 p-3.5 rounded-xl border cursor-pointer transition-all ${isSelected ? 'glass-card border-blue-500/50 bg-blue-500/10' : 'bg-black/20 border-white/5 hover:border-white/20'}`}
+                                    className={`flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer transition-all ${isSelected ? 'glass-card border-blue-500/50 bg-blue-500/10' : 'bg-black/20 border-white/5 hover:border-white/20'}`}
                                 >
-                                    <div className="text-blue-400">
-                                        {isSelected ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5 opacity-30" />}
+                                    <div className="text-blue-400 flex-shrink-0">
+                                        {isSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 opacity-30" />}
                                     </div>
-                                    <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-400'}`}>{scope.label}</span>
+                                    <span className={`text-[11px] md:text-xs font-medium leading-tight ${isSelected ? 'text-white' : 'text-gray-400'}`}>{scope.label}</span>
                                 </motion.div>
                             );
                         })}
@@ -108,51 +108,43 @@ export default function ConsentCard({
                 </div>
 
                 {/* Duration & Purpose Setup */}
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-6 transition-all hover:border-white/20">
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-2">
-                            <Clock className="w-5 h-5 text-amber-400" />
-                            <p className="text-sm font-semibold text-gray-300">Validity Duration</p>
-                        </div>
-                        <div className="relative">
-                            <select
-                                value={selectedDuration}
-                                onChange={(e) => onDurationChange(Number(e.target.value))}
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
-                            >
-                                <option value={0} disabled className="bg-slate-900">Select Duration</option>
-                                {durations.map(dur => (
-                                    <option key={dur.value} value={dur.value} className="bg-slate-900">{dur.label}</option>
-                                ))}
-                            </select>
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
+                <div className="p-4 md:p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4 md:space-y-6 transition-all hover:border-white/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2 md:space-y-3">
+                            <div className="flex items-center space-x-2">
+                                <Clock className="w-4 h-4 text-amber-400" />
+                                <p className="text-[11px] md:text-xs font-bold uppercase tracking-wider text-gray-400">Validity</p>
+                            </div>
+                            <div className="relative">
+                                <select
+                                    value={selectedDuration}
+                                    onChange={(e) => onDurationChange(Number(e.target.value))}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                                >
+                                    <option value={0} disabled className="bg-slate-900">Duration</option>
+                                    {durations.map(dur => (
+                                        <option key={dur.value} value={dur.value} className="bg-slate-900">{dur.label}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-4 pt-4 border-t border-white/10">
-                        <div className="flex items-center space-x-2">
-                            <FileText className="w-5 h-5 text-emerald-400" />
-                            <p className="text-sm font-semibold text-gray-300">Purpose of Processing</p>
-                        </div>
-                        <div className="relative">
-                            <select
-                                value={selectedPurpose}
-                                onChange={(e) => onPurposeChange(e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
-                            >
-                                <option value="" disabled className="bg-slate-900">Select Purpose</option>
-                                {purposes.map(purp => (
-                                    <option key={purp.id} value={purp.id} className="bg-slate-900">{purp.label}</option>
-                                ))}
-                            </select>
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
-                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
+                        <div className="space-y-2 md:space-y-3">
+                            <div className="flex items-center space-x-2">
+                                <FileText className="w-4 h-4 text-emerald-400" />
+                                <p className="text-[11px] md:text-xs font-bold uppercase tracking-wider text-gray-400">Purpose</p>
+                            </div>
+                            <div className="relative">
+                                <select
+                                    value={selectedPurpose}
+                                    onChange={(e) => onPurposeChange(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                                >
+                                    <option value="" disabled className="bg-slate-900">Purpose</option>
+                                    {purposes.map(purp => (
+                                        <option key={purp.id} value={purp.id} className="bg-slate-900">{purp.label}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     </div>

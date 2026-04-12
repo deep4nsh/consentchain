@@ -285,11 +285,11 @@ export default function BankPortal() {
 
         {/* Grant Consent Modal/Overlay */}
         {showGrantWidget && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 lg:p-12">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 lg:p-12">
             <div className="absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl" onClick={() => setShowGrantWidget(false)} />
             
-            <div className="relative w-full max-w-2xl bg-[#020617] rounded-[3rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="absolute top-0 right-0 p-8 z-10">
+            <div className="relative w-full max-w-2xl max-h-[90vh] bg-[#020617] rounded-[2rem] md:rounded-[3rem] border border-white/10 shadow-2xl overflow-y-auto animate-in zoom-in-95 duration-300 scrollbar-hide">
+              <div className="absolute top-0 right-0 p-4 md:p-8 z-10">
                 <button 
                   onClick={() => setShowGrantWidget(false)}
                   className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
@@ -298,13 +298,13 @@ export default function BankPortal() {
                 </button>
               </div>
 
-              <div className="p-12 lg:p-16">
-                <div className="mb-12">
-                  <h3 className="text-3xl font-black text-white tracking-tighter mb-2">GRANT ACCESS</h3>
-                  <p className="text-slate-500 font-medium">Configure your data sovereignty parameters for Meta Finance.</p>
+              <div className="p-8 md:p-12 lg:p-16">
+                <div className="mb-8 md:mb-12">
+                  <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter mb-2 uppercase">GRANT ACCESS</h3>
+                  <p className="text-slate-500 text-sm md:text-base font-medium">Configure your data sovereignty parameters for Meta Finance.</p>
                 </div>
 
-                <div className="bg-white/5 rounded-[2rem] border border-white/5 p-1 ring-1 ring-white/10">
+                <div className="bg-white/5 rounded-[1.5rem] md:rounded-[2rem] border border-white/5 p-1 ring-1 ring-white/10">
                    <ConsentWidget 
                      orgId={ORG_ID} 
                      onSuccess={handleGrantSuccess}
