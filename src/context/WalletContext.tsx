@@ -20,19 +20,19 @@ const walletManager = new WalletManager({
     wallets: [
         {
             id: WalletId.PERA,
-            options: { metadata: dAppMetadata }
+            metadata: dAppMetadata
         },
         {
             id: WalletId.DEFLY,
-            options: { metadata: dAppMetadata }
+            metadata: dAppMetadata
         },
         {
             id: WalletId.EXODUS,
-            options: { metadata: dAppMetadata }
+            metadata: dAppMetadata
         },
         {
             id: WalletId.KIBISIS,
-            options: { metadata: dAppMetadata }
+            metadata: dAppMetadata
         },
         {
             id: WalletId.LUTE,
