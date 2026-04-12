@@ -16,7 +16,7 @@ export default function BankPortal() {
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
   const [showGrantWidget, setShowGrantWidget] = useState(false);
-  const { activeAddress, openModal } = useWallet();
+  const { activeAddress } = useWallet();
 
   const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
   const ORG_ID = 'finsentinel-demo';
@@ -97,14 +97,12 @@ export default function BankPortal() {
           </div>
           <div className="h-8 w-[1px] bg-white/10" />
           <div 
-            onClick={() => !activeAddress && openModal()}
-            className="flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all cursor-pointer group"
+            className="flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl transition-all cursor-default"
           >
             <div className={`w-2 h-2 rounded-full ${activeAddress ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`} />
             <span className="text-xs font-bold tracking-wide">
-              {activeAddress ? `${activeAddress.slice(0, 6)}...${activeAddress.slice(-4)}` : 'Connect Wallet'}
+              {activeAddress ? `${activeAddress.slice(0, 6)}...${activeAddress.slice(-4)}` : 'Wallet Offline'}
             </span>
-            {!activeAddress && <Wallet size={14} className="text-slate-500 group-hover:text-emerald-500 transition-colors" />}
           </div>
         </div>
       </nav>
