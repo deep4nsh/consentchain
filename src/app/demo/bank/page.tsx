@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
-import { Shield, Lock, CheckCircle, CreditCard, PieChart, TrendingUp, History, User, Search, Fingerprint, AlertTriangle } from 'lucide-react';
+import { Shield, Lock, CheckCircle, CreditCard, PieChart, TrendingUp, History, User, Search, Fingerprint, AlertTriangle, Key, ArrowRight, X } from 'lucide-react';
+import ConsentWidget from '@/components/ConsentWidget';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
@@ -13,6 +14,7 @@ export default function BankPortal() {
   const [userAddress, setUserAddress] = useState('');
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
+  const [showGrantWidget, setShowGrantWidget] = useState(false);
 
   const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
   const ORG_ID = 'finsentinel-demo';
@@ -41,6 +43,7 @@ export default function BankPortal() {
   const handleManualVerify = async () => {
     if (!userAddress) return;
     setIsVerifying(true);
+    setStatus('idle'); // Reset status on new verify attempt
     try {
       const result = await sdk.verifyConsent(userAddress, ORG_ID);
       if (result.isActive) {
@@ -55,6 +58,12 @@ export default function BankPortal() {
     } finally {
       setIsVerifying(false);
     }
+  };
+
+  const handleGrantSuccess = () => {
+    setShowGrantWidget(false);
+    setIsLocked(false);
+    setStatus('verified');
   };
 
   return (
@@ -161,10 +170,28 @@ export default function BankPortal() {
                           onChange={(e) => setUserAddress(e.target.value)}
                         />
                         {status === 'denied' && (
-                          <div className="mt-4 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl animate-shake">
-                            <p className="text-xs text-rose-500 font-black flex items-center gap-2 justify-center italic">
-                              <AlertTriangle size={14} /> SECURITY CLEARANCE DENIED: NO ON-CHAIN RECORD FOUND
-                            </p>
+                          <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                            <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl animate-shake">
+                              <p className="text-xs text-rose-500 font-black flex items-center gap-2 justify-center italic">
+                                <AlertTriangle size={14} /> SECURITY CLEARANCE DENIED: NO ON-CHAIN RECORD FOUND
+                              </p>
+                            </div>
+                            
+                            <button 
+                              onClick={() => setShowGrantWidget(true)}
+                              className="w-full group flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all"
+                            >
+                              <div className="flex items-center gap-3 text-left">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                                  <Key size={16} />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-black text-white">GRANT NEW CONSENT</p>
+                                  <p className="text-[10px] text-slate-500 font-bold">Create immutable record via Blockchain</p>
+                                </div>
+                              </div>
+                              <ArrowRight size={16} className="text-slate-600 group-hover:text-emerald-500 transition-colors" />
+                            </button>
                           </div>
                         )}
                       </div>
@@ -255,6 +282,38 @@ export default function BankPortal() {
             )}
           </div>
         </div>
+
+        {/* Grant Consent Modal/Overlay */}
+        {showGrantWidget && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 lg:p-12">
+            <div className="absolute inset-0 bg-[#020617]/90 backdrop-blur-2xl" onClick={() => setShowGrantWidget(false)} />
+            
+            <div className="relative w-full max-w-2xl bg-[#020617] rounded-[3rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="absolute top-0 right-0 p-8 z-10">
+                <button 
+                  onClick={() => setShowGrantWidget(false)}
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-12 lg:p-16">
+                <div className="mb-12">
+                  <h3 className="text-3xl font-black text-white tracking-tighter mb-2">GRANT ACCESS</h3>
+                  <p className="text-slate-500 font-medium">Configure your data sovereignty parameters for Meta Finance.</p>
+                </div>
+
+                <div className="bg-white/5 rounded-[2rem] border border-white/5 p-1 ring-1 ring-white/10">
+                   <ConsentWidget 
+                     orgId={ORG_ID} 
+                     onSuccess={handleGrantSuccess}
+                   />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <style jsx global>{`
