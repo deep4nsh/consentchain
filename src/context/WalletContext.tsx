@@ -4,76 +4,44 @@ import React, { ReactNode } from "react";
 import { WalletProvider, WalletId, WalletManager, NetworkId } from "@txnlab/use-wallet-react";
 import { algodClient } from "@/lib/algorand";
 
-// Build the wallet list dynamically, only including Magic if the API key is configured
-const walletList: any[] = [
-    {
-        id: WalletId.PERA,
-        options: { 
-            projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f",
-            metadata: {
-                name: "ConsentChain",
-                description: "Decentralized Consent Management on Algorand",
-                url: "https://consentchain-vert.vercel.app",
-                icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
-            }
-        }
-    },
-    {
-        id: WalletId.DEFLY,
-        options: { 
-            projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f",
-            metadata: {
-                name: "ConsentChain",
-                description: "Decentralized Consent Management on Algorand",
-                url: "https://consentchain-vert.vercel.app",
-                icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
-            }
-        }
-    },
-    WalletId.LUTE,
-    WalletId.EXODUS,
-    WalletId.KIBISIS,
-    {
-        id: WalletId.WALLETCONNECT,
-        options: { 
-            projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f",
-            metadata: {
-                name: "ConsentChain",
-                description: "Decentralized Consent Management on Algorand",
-                url: "https://consentchain-vert.vercel.app",
-                icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
-            }
-        }
-    },
-];
+// Standardized dApp metadata for all wallet handshakes
+const dAppMetadata = {
+    name: "ConsentChain",
+    description: "Decentralized Consent Management on Algorand",
+    url: "https://consentchain-vert.vercel.app",
+    icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
+};
 
-// Only add Magic wallet if an API key is actually configured
-if (process.env.NEXT_PUBLIC_MAGIC_API_KEY) {
-    walletList.push({
-        id: WalletId.MAGIC,
-        options: { apiKey: process.env.NEXT_PUBLIC_MAGIC_API_KEY }
-    });
-}
+// Prioritize the Project ID from the environment
+const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f";
 
-// Initialize the WalletManager with desired wallets and mandatory metadata for v4
+// Initialize the WalletManager with hardened settings for EVERY wallet provider
 const walletManager = new WalletManager({
     wallets: [
         {
-            id: WalletId.WALLETCONNECT,
-            options: { 
-                projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f",
-                metadata: {
-                    name: "ConsentChain",
-                    description: "Decentralized Consent Management on Algorand",
-                    url: "https://consentchain-vert.vercel.app",
-                    icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
-                }
-            }
+            id: WalletId.PERA,
+            options: { projectId, metadata: dAppMetadata }
         },
-        WalletId.PERA, // Keeping as fallback if library eventually updates
-        WalletId.DEFLY,
-        WalletId.LUTE,
-        WalletId.KIBISIS
+        {
+            id: WalletId.DEFLY,
+            options: { projectId, metadata: dAppMetadata }
+        },
+        {
+            id: WalletId.EXODUS,
+            options: { metadata: dAppMetadata }
+        },
+        {
+            id: WalletId.KIBISIS,
+            options: { metadata: dAppMetadata }
+        },
+        {
+            id: WalletId.LUTE,
+            options: { siteName: "ConsentChain" }
+        },
+        {
+            id: WalletId.WALLETCONNECT,
+            options: { projectId, metadata: dAppMetadata }
+        }
     ],
     defaultNetwork: NetworkId.TESTNET,
     networks: {
