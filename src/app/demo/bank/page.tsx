@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
-import { Shield, Lock, CheckCircle, CreditCard, PieChart, TrendingUp, History, User, Search, Fingerprint, AlertTriangle, Key, ArrowRight, X } from 'lucide-react';
+import { Shield, Lock, CheckCircle, CreditCard, PieChart, TrendingUp, History, User, Search, Fingerprint, AlertTriangle, Key, ArrowRight, X, Wallet } from 'lucide-react';
 import ConsentWidget from '@/components/ConsentWidget';
+import { useWallet } from '@txnlab/use-wallet-react';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
@@ -15,9 +16,17 @@ export default function BankPortal() {
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
   const [showGrantWidget, setShowGrantWidget] = useState(false);
+  const { activeAddress, openModal } = useWallet();
 
   const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
   const ORG_ID = 'finsentinel-demo';
+  
+  // Sync userAddress with activeAddress when connected
+  useEffect(() => {
+    if (activeAddress && !userAddress) {
+      setUserAddress(activeAddress);
+    }
+  }, [activeAddress, userAddress]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -87,9 +96,15 @@ export default function BankPortal() {
             <span className="hover:text-emerald-400 cursor-pointer transition-colors">Vaults</span>
           </div>
           <div className="h-8 w-[1px] bg-white/10" />
-          <div className="flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all cursor-pointer">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-bold tracking-wide">0x992...F2C1</span>
+          <div 
+            onClick={() => !activeAddress && openModal()}
+            className="flex items-center gap-3 px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all cursor-pointer group"
+          >
+            <div className={`w-2 h-2 rounded-full ${activeAddress ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`} />
+            <span className="text-xs font-bold tracking-wide">
+              {activeAddress ? `${activeAddress.slice(0, 6)}...${activeAddress.slice(-4)}` : 'Connect Wallet'}
+            </span>
+            {!activeAddress && <Wallet size={14} className="text-slate-500 group-hover:text-emerald-500 transition-colors" />}
           </div>
         </div>
       </nav>
