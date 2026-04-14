@@ -197,104 +197,43 @@ export default function Navbar() {
                             </div>
 
                             <div className="px-6 pb-10">
-                                {!showAllWallets ? (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-4 mt-2">
-                                            {wallets?.slice(0, 4).map((wallet) => (
-                                                <button
-                                                    key={wallet.id}
-                                                    onClick={() => {
-                                                        if (wallet.isConnected) {
-                                                            wallet.setActive();
-                                                        } else {
-                                                            wallet.connect();
-                                                        }
-                                                        setIsWalletModalOpen(false);
-                                                    }}
-                                                    className="aspect-square flex flex-col items-center justify-center p-4 rounded-[1.5rem] bg-white/[0.03] border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.06] transition-all group relative"
-                                                >
-                                                    {wallet.metadata?.icon && (
-                                                        <div className="w-12 h-12 mb-2 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                                            <img
-                                                                src={wallet.metadata.icon}
-                                                                alt={wallet.metadata.name}
-                                                                className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider group-hover:text-blue-400 transition-colors">
-                                                        {wallet.metadata?.name || wallet.id}
-                                                    </span>
-                                                    {wallet.isConnected && (
-                                                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        {wallets && wallets.length > 4 ? (
-                                            <button
-                                                onClick={() => setShowAllWallets(true)}
-                                                className="w-full mt-4 py-3 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 text-xs font-bold text-gray-400 hover:text-white transition-all flex items-center justify-center space-x-2 group"
-                                            >
-                                                <span>More Wallets</span>
-                                                <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                                                    <span className="text-[10px] text-white">+</span>
-                                                </div>
-                                            </button>
-                                        ) : (wallets && wallets.length > 0 && wallets.length <= 4) ? (
-                                            <div className="mt-4 text-center">
-                                                <p className="text-[10px] text-gray-600 font-medium uppercase tracking-[0.2em]">Supported by Algorand</p>
-                                            </div>
-                                        ) : null}
-                                    </>
-                                ) : (
-                                    <motion.div
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className="space-y-2 mt-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"
-                                    >
+                                <div className="grid grid-cols-2 gap-4 mt-2">
+                                    {wallets?.filter(w => ['pera', 'defly'].includes(w.id.toLowerCase())).map((wallet) => (
                                         <button
-                                            onClick={() => setShowAllWallets(false)}
-                                            className="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest mb-4 flex items-center"
+                                            key={wallet.id}
+                                            onClick={() => {
+                                                if (wallet.isConnected) {
+                                                    wallet.setActive();
+                                                } else {
+                                                    wallet.connect();
+                                                }
+                                                setIsWalletModalOpen(false);
+                                            }}
+                                            className="aspect-square flex flex-col items-center justify-center p-4 rounded-[1.5rem] bg-white/[0.03] border border-white/5 hover:border-blue-500/40 hover:bg-white/[0.06] transition-all group relative"
                                         >
-                                            ← Back to featured
+                                            {wallet.metadata?.icon && (
+                                                <div className="w-12 h-12 mb-2 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                    <img
+                                                        src={wallet.metadata.icon}
+                                                        alt={wallet.metadata.name}
+                                                        className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]"
+                                                    />
+                                                </div>
+                                            )}
+                                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider group-hover:text-blue-400 transition-colors">
+                                                {wallet.metadata?.name || wallet.id}
+                                            </span>
+                                            {wallet.isConnected && (
+                                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                                            )}
                                         </button>
-                                        {wallets?.map((wallet) => (
-                                            <button
-                                                key={wallet.id}
-                                                onClick={() => {
-                                                    if (wallet.isConnected) {
-                                                        wallet.setActive();
-                                                    } else {
-                                                        wallet.connect();
-                                                    }
-                                                    setIsWalletModalOpen(false);
-                                                }}
-                                                className="w-full flex items-center p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-blue-500/40 transition-all group"
-                                            >
-                                                {wallet.metadata?.icon && (
-                                                    <div className="w-8 h-8 mr-3 p-1 rounded-lg bg-black/20">
-                                                        <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-full h-full object-contain" />
-                                                    </div>
-                                                )}
-                                                <div className="flex flex-col items-start">
-                                                    <span className="font-bold text-sm text-white group-hover:text-blue-400 transition-colors">
-                                                        {wallet.metadata?.name || wallet.id}
-                                                    </span>
-                                                    {wallet.isConnected && (
-                                                        <span className="text-[9px] text-green-500 font-bold uppercase tracking-tight">Connected</span>
-                                                    )}
-                                                </div>
-                                                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </motion.div>
-                                )}
+                                    ))}
+                                </div>
+
+                                <div className="mt-6 text-center">
+                                    <p className="text-[10px] text-gray-600 font-medium uppercase tracking-[0.2em]">Validated on Algorand</p>
+                                </div>
+                            </div>
 
                                 {(!wallets || wallets.length === 0) && (
                                     <div className="text-center py-8">
