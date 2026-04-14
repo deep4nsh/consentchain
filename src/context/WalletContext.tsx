@@ -34,22 +34,6 @@ export function AppWalletProvider({ children }: { children: ReactNode }) {
                     options: { 
                         shouldShowSignTxnToast: true
                     }
-                },
-                {
-                    id: WalletId.EXODUS,
-                    metadata: dAppMetadata
-                },
-                {
-                    id: WalletId.KIBISIS,
-                    metadata: dAppMetadata
-                },
-                {
-                    id: WalletId.LUTE,
-                    options: { siteName: "ConsentChain" }
-                },
-                {
-                    id: WalletId.WALLETCONNECT,
-                    options: { projectId, metadata: dAppMetadata }
                 }
             ],
             defaultNetwork: NetworkId.TESTNET,
