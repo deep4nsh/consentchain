@@ -1,63 +1,72 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { WalletProvider, WalletId, WalletManager, NetworkId } from "@txnlab/use-wallet-react";
-import { algodClient } from "@/lib/algorand";
-
-// Standardized dApp metadata for all wallet handshakes
-const dAppMetadata = {
-    name: "ConsentChain",
-    description: "Decentralized Consent Management on Algorand",
-    url: "https://consentchain-vert.vercel.app",
-    icons: ["https://consentchain-vert.vercel.app/consentchain.gif"],
-};
 
 // Prioritize the Project ID from the environment
-const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || "3c87e9c9eb18903e620d440d42194c5f";
-
-// Initialize the WalletManager with hardened settings for EVERY wallet provider
-const walletManager = new WalletManager({
-    wallets: [
-        {
-            id: WalletId.PERA,
-            metadata: dAppMetadata,
-            options: { shouldShowSignTxnToast: true }
-        },
-        {
-            id: WalletId.DEFLY,
-            metadata: dAppMetadata,
-            options: { shouldShowSignTxnToast: true }
-        },
-        {
-            id: WalletId.EXODUS,
-            metadata: dAppMetadata
-        },
-        {
-            id: WalletId.KIBISIS,
-            metadata: dAppMetadata
-        },
-        {
-            id: WalletId.LUTE,
-            options: { siteName: "ConsentChain" }
-        },
-        {
-            id: WalletId.WALLETCONNECT,
-            options: { projectId, metadata: dAppMetadata }
-        }
-    ],
-    defaultNetwork: NetworkId.TESTNET,
-    networks: {
-        testnet: {
-            algod: {
-                baseServer: process.env.NEXT_PUBLIC_ALGOD_SERVER || 'https://testnet-api.algonode.cloud',
-                port: process.env.ALGOD_PORT || '443',
-                token: process.env.ALGOD_TOKEN || '',
-            }
-        }
-    }
-});
+const FALLBACK_PROJECT_ID = "3c87e9c9eb18903e620d440d42194c5f";
 
 export function AppWalletProvider({ children }: { children: ReactNode }) {
+    const walletManager = useMemo(() => {
+        // Dynamically detect origin to prevent "Invalid QR" or "Origin Mismatch" on preview/local domains
+        const origin = typeof window !== "undefined" ? window.location.origin : "https://consentchain-vert.vercel.app";
+        const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || FALLBACK_PROJECT_ID;
+
+        const dAppMetadata = {
+            name: "ConsentChain",
+            description: "Decentralized Consent Management on Algorand",
+            url: origin,
+            icons: [`${origin}/consentchain.gif`],
+        };
+
+        return new WalletManager({
+            wallets: [
+                {
+                    id: WalletId.PERA,
+                    metadata: dAppMetadata,
+                    options: { 
+                        shouldShowSignTxnToast: true,
+                        projectId // Ensure WC v2 compatibility
+                    }
+                },
+                {
+                    id: WalletId.DEFLY,
+                    metadata: dAppMetadata,
+                    options: { 
+                        shouldShowSignTxnToast: true,
+                        projectId // Ensure WC v2 compatibility
+                    }
+                },
+                {
+                    id: WalletId.EXODUS,
+                    metadata: dAppMetadata
+                },
+                {
+                    id: WalletId.KIBISIS,
+                    metadata: dAppMetadata
+                },
+                {
+                    id: WalletId.LUTE,
+                    options: { siteName: "ConsentChain" }
+                },
+                {
+                    id: WalletId.WALLETCONNECT,
+                    options: { projectId, metadata: dAppMetadata }
+                }
+            ],
+            defaultNetwork: NetworkId.TESTNET,
+            networks: {
+                testnet: {
+                    algod: {
+                        baseServer: process.env.NEXT_PUBLIC_ALGOD_SERVER || 'https://testnet-api.algonode.cloud',
+                        port: process.env.ALGOD_PORT || '443',
+                        token: process.env.ALGOD_TOKEN || '',
+                    }
+                }
+            }
+        });
+    }, []);
+
     return (
         <WalletProvider manager={walletManager}>
             {children}
