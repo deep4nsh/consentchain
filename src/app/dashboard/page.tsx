@@ -101,7 +101,7 @@ function DashboardContent() {
             const submitData = await submitRes.json();
             if (!submitData.success) throw new Error(submitData.error);
 
-            addAuditLog(`Revoked: Success for ${organizationId}. TxID: ${submitData.transactionId?.substring(0, 8) || 'confirmed'}`);
+            addAuditLog(`Revoked: Success. Ledger updating (may take ~10s to reflect).`);
             
             // Wait a moment for the indexer/algod to catch up
             setTimeout(() => fetchConsents(), 2000);
@@ -134,6 +134,7 @@ function DashboardContent() {
         if (!accountAddress || typeof window === 'undefined') return;
         
         setIsSyncing(true);
+        setSyncSuccess(false); // Reset previous success state
         console.log(`[Dashboard] Broadcasting identity sync for: ${accountAddress}`);
 
         // Universal Handshake: Broadcast to any listening Sentinel V2 instance
@@ -142,10 +143,15 @@ function DashboardContent() {
             address: accountAddress 
         }, window.location.origin);
 
-        // Automatic fallback for sync UI state
+        // Automatic timeout if extension doesn't respond
         setTimeout(() => {
-            setIsSyncing(false);
-        }, 1000);
+            setIsSyncing(prev => {
+                if (prev) {
+                    addAuditLog("Sentinel: Sync timed out. Is the extension installed?");
+                }
+                return false;
+            });
+        }, 5000);
     };
 
     // Listen for sync success from extension context
@@ -155,6 +161,7 @@ function DashboardContent() {
             if (event.origin !== window.location.origin) return;
             if (event.data.type === 'SENTINEL_SYNC_SUCCESS') {
                 setSyncSuccess(true);
+                setIsSyncing(false); // Clear loading state
                 addAuditLog("Sentinel: Connection established successfully.");
                 setTimeout(() => setSyncSuccess(false), 3000);
             }

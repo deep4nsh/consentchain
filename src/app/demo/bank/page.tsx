@@ -34,7 +34,10 @@ export default function BankPortal() {
       if (event.origin !== window.location.origin) return;
 
       if (event.data?.type === 'CONSENT_CHALLENGE') {
+        const { nonce } = event.data;
         setSentinelActive(true);
+        // Reply with ACK and the nonce
+        window.postMessage({ type: 'CONSENT_ACK', nonce }, window.location.origin);
       }
       
       // Extension sends SENTINEL_HANDSHAKE with { verified, orgId, address }

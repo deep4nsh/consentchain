@@ -12,9 +12,7 @@ const ALLOWED_ORIGINS = [
   'https://consentchain-vert.vercel.app',
   'https://banking-demo-coral.vercel.app',
   'https://insurance-demo-inky.vercel.app',
-  'https://medical-demo-theta.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:3001'
+  'https://medical-demo-theta.vercel.app'
 ];
 
 function isAllowedOrigin(origin) {
