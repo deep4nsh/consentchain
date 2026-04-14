@@ -25,16 +25,14 @@ export function AppWalletProvider({ children }: { children: ReactNode }) {
                     id: WalletId.PERA,
                     metadata: dAppMetadata,
                     options: { 
-                        shouldShowSignTxnToast: true,
-                        projectId // Ensure WC v2 compatibility
+                        shouldShowSignTxnToast: true
                     }
                 },
                 {
                     id: WalletId.DEFLY,
                     metadata: dAppMetadata,
                     options: { 
-                        shouldShowSignTxnToast: true,
-                        projectId // Ensure WC v2 compatibility
+                        shouldShowSignTxnToast: true
                     }
                 },
                 {
