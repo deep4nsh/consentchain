@@ -16,7 +16,18 @@ const ALLOWED_ORIGINS = [
 ];
 
 function isAllowedOrigin(origin) {
-  return ALLOWED_ORIGINS.includes(origin) || origin === window.location.origin;
+  if (!origin) return false;
+  
+  // Allow exact matches from the whitelist
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  
+  // Allow all Vercel previews
+  if (origin.endsWith('.vercel.app')) return true;
+  
+  // Allow standard local development
+  if (origin === 'http://localhost:3000' || origin === 'http://localhost:3001') return true;
+  
+  return origin === window.location.origin;
 }
 
 async function checkAndSignal() {

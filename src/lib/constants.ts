@@ -19,6 +19,8 @@ export const LEGACY_ORG_NAMES: Record<string, string> = {
     'zomato_health': 'UltraCover Insurance',
     // Old portal-specific IDs (pre-standardization)
     'meta-finance-demo': 'FinSentinel Wealth',
+    'meta_finance': 'FinSentinel Wealth',
+    'metafinance': 'FinSentinel Wealth',
 };
 
 export const resolveOrganizationName = (id: string): string => {

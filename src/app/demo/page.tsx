@@ -39,7 +39,7 @@ const portals = [
     },
     {
         name: 'MetaFinance Hub',
-        orgId: 'meta_finance',
+        orgId: 'meta-finance-demo',
         description: 'Institutional wealth management portal with encrypted net worth and DeFi integrations.',
         href: '/partners/metafinance',
         icon: Shield,

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Wallet } from "lucide-react";
+import { Menu, X, Wallet, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@txnlab/use-wallet-react";
@@ -15,9 +15,20 @@ export default function Navbar() {
     // @txnlab/use-wallet-react hooks
     const { activeAddress, wallets } = useWallet();
     const [mounted, setMounted] = useState(false);
+    const [isSentinelActive, setIsSentinelActive] = useState(false);
 
     useEffect(() => {
         setMounted(true);
+
+        const handleMessage = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type === 'CONSENT_CHALLENGE' || event.data?.type === 'SENTINEL_SYNC_SUCCESS' || event.data?.type === 'SENTINEL_HANDSHAKE') {
+                setIsSentinelActive(true);
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
     }, []);
 
     const navLinks = [
@@ -75,7 +86,16 @@ export default function Navbar() {
                                 ))}
                                 <div className="flex items-center space-x-4 pl-4 border-l border-white/10">
                                     {mounted && activeAddress ? (
-                                        <div className="flex items-center space-x-3 bg-white/5 pl-4 pr-1 py-1 rounded-full border border-white/10">
+                                        <div className="flex items-center space-x-3 bg-white/5 pl-3 pr-1 py-1 rounded-full border border-white/10">
+                                            {isSentinelActive && (
+                                                <div className="flex items-center gap-1.5 px-2 py-1 bg-purple-500/10 rounded-full border border-purple-500/20 group relative cursor-help">
+                                                    <Shield className="w-3 h-3 text-purple-400" />
+                                                    <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter">Sentinel</span>
+                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-black border border-white/10 rounded-lg text-[10px] text-gray-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-2xl">
+                                                        Authenticated by Sentinel Protocol
+                                                    </div>
+                                                </div>
+                                            )}
                                             <span className="text-sm font-mono text-gray-300">
                                                 {activeAddress.substring(0, 6)}...{activeAddress.substring(activeAddress.length - 4)}
                                             </span>

@@ -28,11 +28,14 @@ export function compressPayload(payload: ConsentPayload): string {
  */
 export function decompressPayload(compressed: string): ConsentPayload {
     const data = JSON.parse(compressed);
+    const expiry = data.e || data.exp;
+    const timestamp = data.t || data.timestamp || data.consent_timestamp;
+    
     return {
-        data_scope: data.s,
-        purpose: data.p,
-        expiry_date: new Date(data.e).toISOString(),
-        consent_timestamp: data.t ? new Date(data.t).toISOString() : undefined
+        data_scope: data.s || data.data_scope || data.scopes || '',
+        purpose: data.p || data.purpose || '',
+        expiry_date: expiry ? new Date(expiry).toISOString() : new Date().toISOString(),
+        consent_timestamp: timestamp ? new Date(timestamp).toISOString() : undefined
     };
 }
 
