@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: https://*.walletconnect.com",
-              "connect-src 'self' https://testnet-api.algonode.cloud https://testnet-idx.algonode.cloud https://consentchain-vert.vercel.app wss: wss://*.walletconnect.com https://*.walletconnect.com https://*.walletconnect.org wss://*.walletconnect.org https://*.perawallet.app wss://*.perawallet.app",
+              "connect-src 'self' https://testnet-api.algonode.cloud https://testnet-idx.algonode.cloud https://consentchain-vert.vercel.app wss: wss://*.walletconnect.com https://*.walletconnect.com https://*.walletconnect.org wss://*.walletconnect.org https://*.perawallet.app wss://*.perawallet.app https://*.defly.app wss://*.defly.app",
               "frame-src 'self' https://*.walletconnect.com https://*.walletconnect.org https://verify.walletconnect.com https://verify.walletconnect.org",
               "object-src 'none'",
               "base-uri 'self'",
