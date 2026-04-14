@@ -243,7 +243,6 @@ export default function Navbar() {
                                         <p className="text-sm text-gray-500 font-medium">No wallets found</p>
                                     </div>
                                 )}
-                            </div>
                         </motion.div>
                     </div>
                 )}
