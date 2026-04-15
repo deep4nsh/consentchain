@@ -6,6 +6,8 @@ import { algodClient, indexerClient } from '@/lib/algorand';
 import { Shield, Lock, CheckCircle, CreditCard, PieChart, TrendingUp, History, User, Search, Fingerprint, AlertTriangle, Key, ArrowRight, X, Wallet } from 'lucide-react';
 import ConsentWidget from '@/components/ConsentWidget';
 import { useWallet } from '@txnlab/use-wallet-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getBankIdentity } from '@/lib/demoUtils';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
@@ -16,6 +18,7 @@ export default function BankPortal() {
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
   const [showGrantWidget, setShowGrantWidget] = useState(false);
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'yield' | 'vault'>('portfolio');
   const { activeAddress } = useWallet();
 
   const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
@@ -95,9 +98,24 @@ export default function BankPortal() {
         
         <div className="flex items-center gap-8">
           <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-slate-400">
-            <span className="hover:text-emerald-400 cursor-pointer transition-colors">Portfolios</span>
-            <span className="hover:text-emerald-400 cursor-pointer transition-colors">Yield Terminal</span>
-            <span className="hover:text-emerald-400 cursor-pointer transition-colors">Vaults</span>
+            <span 
+              onClick={() => setActiveTab('portfolio')}
+              className={`cursor-pointer transition-colors ${activeTab === 'portfolio' ? 'text-emerald-400' : 'hover:text-emerald-400'}`}
+            >
+              Portfolios
+            </span>
+            <span 
+              onClick={() => setActiveTab('yield')}
+              className={`cursor-pointer transition-colors ${activeTab === 'yield' ? 'text-emerald-400' : 'hover:text-emerald-400'}`}
+            >
+              Yield Terminal
+            </span>
+            <span 
+              onClick={() => setActiveTab('vault')}
+              className={`cursor-pointer transition-colors ${activeTab === 'vault' ? 'text-emerald-400' : 'hover:text-emerald-400'}`}
+            >
+              Vaults
+            </span>
           </div>
           <div className="h-8 w-[1px] bg-white/10" />
           <div 
@@ -248,8 +266,12 @@ export default function BankPortal() {
                       <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3">
                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500" />
                          <div>
-                            <p className="text-sm font-black text-white">VIP CLEARANCE</p>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Lvl 4 Access Granted</p>
+                            <p className="text-sm font-black text-white uppercase tracking-tight">
+                              {userAddress ? getBankIdentity(userAddress).name : "Prospect"}
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                              {userAddress ? getBankIdentity(userAddress).tier : "--"} • CLEARANCE LVL 4
+                            </p>
                          </div>
                       </div>
                     </div>
@@ -261,40 +283,72 @@ export default function BankPortal() {
                     )}
                  </div>
 
-                 {/* Transaction Table */}
-                 <div className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-sm">
-                    <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                       <h4 className="flex items-center gap-3 font-black tracking-tighter text-xl">
-                          <History size={20} className="text-emerald-500" />
-                          TRANSACTION LEDGER
-                       </h4>
-                       <span className="text-xs font-bold text-slate-500 bg-white/5 px-4 py-2 rounded-full border border-white/10 tracking-widest">OCT 2026</span>
-                    </div>
-                    <div className="p-4">
-                       {[
-                         { title: 'Global Equity Buy', amount: '-$12,402.00', date: 'Oct 04, 14:22', status: 'Completed' },
-                         { title: 'Custodial Inflow', amount: '+$405,000.00', date: 'Oct 03, 09:15', status: 'Verified' },
-                         { title: 'Vault Sweeping', amount: '-$1,200.00', date: 'Oct 01, 18:45', status: 'Legacy' },
-                         { title: 'Dividend Auto-Collect', amount: '+$482.90', date: 'Sept 28, 12:00', status: 'Completed' },
-                       ].map((tx, i) => (
-                         <div key={i} className="flex items-center justify-between p-6 hover:bg-white/[0.03] transition-colors rounded-3xl group border-l-4 border-transparent hover:border-emerald-500">
-                            <div className="flex items-center gap-5">
-                               <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-white transition-colors">
-                                  {tx.amount.startsWith('+') ? <TrendingUp size={20} /> : <CreditCard size={20} />}
-                               </div>
-                               <div>
-                                  <p className="text-base font-bold text-white tracking-tight">{tx.title}</p>
-                                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{tx.date}</p>
-                               </div>
+                 <AnimatePresence mode="wait">
+                  {activeTab === 'portfolio' && (
+                    <motion.div 
+                      key="portfolio" 
+                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                      className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-sm"
+                    >
+                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                          <h4 className="flex items-center gap-3 font-black tracking-tighter text-xl">
+                              <History size={20} className="text-emerald-500" />
+                              TRANSACTION LEDGER
+                          </h4>
+                          <span className="text-xs font-bold text-slate-500 bg-white/5 px-4 py-2 rounded-full border border-white/10 tracking-widest">OCT 2026</span>
+                        </div>
+                        <div className="p-4">
+                          {[
+                            { title: 'Global Equity Buy', amount: '-$12,402.00', date: 'Oct 04, 14:22', status: 'Completed' },
+                            { title: 'Custodial Inflow', amount: '+$405,000.00', date: 'Oct 03, 09:15', status: 'Verified' },
+                            { title: 'Vault Sweeping', amount: '-$1,200.00', date: 'Oct 01, 18:45', status: 'Legacy' },
+                            { title: 'Dividend Auto-Collect', amount: '+$482.90', date: 'Sept 28, 12:00', status: 'Completed' },
+                          ].map((tx, i) => (
+                            <div key={i} className="flex items-center justify-between p-6 hover:bg-white/[0.03] transition-colors rounded-3xl group border-l-4 border-transparent hover:border-emerald-500">
+                                <div className="flex items-center gap-5">
+                                  <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-white transition-colors">
+                                      {tx.amount.startsWith('+') ? <TrendingUp size={20} /> : <CreditCard size={20} />}
+                                  </div>
+                                  <div>
+                                      <p className="text-base font-bold text-white tracking-tight">{tx.title}</p>
+                                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{tx.date}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className={`text-lg font-black tracking-tighter ${tx.amount.startsWith('+') ? 'text-emerald-400' : 'text-white'}`}>{tx.amount}</p>
+                                  <span className="text-[10px] text-slate-500 font-bold bg-white/5 px-2 py-0.5 rounded border border-white/5 uppercase tracking-tighter font-mono">{tx.status}</span>
+                                </div>
                             </div>
-                            <div className="text-right">
-                               <p className={`text-lg font-black tracking-tighter ${tx.amount.startsWith('+') ? 'text-emerald-400' : 'text-white'}`}>{tx.amount}</p>
-                               <span className="text-[10px] text-slate-500 font-bold bg-white/5 px-2 py-0.5 rounded border border-white/5 uppercase tracking-tighter font-mono">{tx.status}</span>
-                            </div>
-                         </div>
-                       ))}
-                    </div>
-                 </div>
+                          ))}
+                        </div>
+                    </motion.div>
+                  )}
+
+                  {activeTab === 'yield' && (
+                    <motion.div 
+                      key="yield" 
+                      initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                      className="bg-white/5 border border-white/10 rounded-[2.5rem] p-12 text-center"
+                    >
+                       <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-500/20">
+                          <TrendingUp size={32} className="text-emerald-400" />
+                       </div>
+                       <h4 className="text-3xl font-black mb-4 tracking-tighter">YIELD TERMINAL</h4>
+                       <p className="text-slate-500 mb-12 max-w-sm mx-auto">Automated re-balancing engine active. Current effective APY for institutional vault participants.</p>
+                       
+                       <div className="grid grid-cols-2 gap-6">
+                          <div className="p-8 bg-white/5 rounded-3xl border border-white/5 transition-all hover:bg-white/10">
+                             <p className="text-4xl font-black text-emerald-400 italic">14.2%</p>
+                             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">CC-STAKE APY</p>
+                          </div>
+                          <div className="p-8 bg-white/5 rounded-3xl border border-white/5 transition-all hover:bg-white/10">
+                             <p className="text-4xl font-black text-white italic">8.8%</p>
+                             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">ALGO-POOL APY</p>
+                          </div>
+                       </div>
+                    </motion.div>
+                  )}
+                 </AnimatePresence>
               </div>
             )}
           </div>

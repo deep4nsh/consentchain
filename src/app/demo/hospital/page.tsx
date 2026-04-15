@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
 import { Shield, Lock, CheckCircle, Activity, FileText, User, Search, Play, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getPatientIdentity } from '@/lib/demoUtils';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
@@ -13,6 +15,7 @@ export default function HospitalPortal() {
   const [userAddress, setUserAddress] = useState('');
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
+  const [activeTab, setActiveTab] = useState<'records' | 'vitals' | 'prescriptions'>('records');
 
   const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
   const ORG_ID = 'health-vault-demo';
@@ -91,18 +94,29 @@ export default function HospitalPortal() {
       <main className="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Sidebar Navigation */}
         <aside className="lg:col-span-3 space-y-2">
-          <div className="p-4 bg-sky-500 text-white rounded-2xl flex items-center gap-3 shadow-md shadow-sky-100">
+          <button 
+            onClick={() => setActiveTab('records')}
+            className={`w-full text-left p-4 rounded-2xl flex items-center gap-3 transition-all ${activeTab === 'records' ? 'bg-sky-500 text-white shadow-md shadow-sky-100' : 'hover:bg-white hover:shadow-sm text-slate-500'}`}
+          >
             <FileText size={20} />
             <span className="font-semibold">Patient Records</span>
-          </div>
-          <div className="p-4 hover:bg-white hover:shadow-sm rounded-2xl flex items-center gap-3 text-slate-500 transition-all cursor-not-allowed opacity-60">
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('vitals')}
+            className={`w-full text-left p-4 rounded-2xl flex items-center gap-3 transition-all ${activeTab === 'vitals' ? 'bg-sky-500 text-white shadow-md shadow-sky-100' : 'hover:bg-white hover:shadow-sm text-slate-500'}`}
+          >
             <Activity size={20} />
             <span className="font-medium">Vitals History</span>
-          </div>
-          <div className="p-4 hover:bg-white hover:shadow-sm rounded-2xl flex items-center gap-3 text-slate-500 transition-all cursor-not-allowed opacity-60">
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('prescriptions')}
+            className={`w-full text-left p-4 rounded-2xl flex items-center gap-3 transition-all ${activeTab === 'prescriptions' ? 'bg-sky-500 text-white shadow-md shadow-sky-100' : 'hover:bg-white hover:shadow-sm text-slate-500'}`}
+          >
             <AlertCircle size={20} />
             <span className="font-medium">Prescriptions</span>
-          </div>
+          </button>
           
           <div className="mt-12 p-6 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl text-white relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
@@ -121,8 +135,16 @@ export default function HospitalPortal() {
         <div className="lg:col-span-9 space-y-6">
           <header className="flex justify-between items-end mb-4">
             <div>
-              <h2 className="text-3xl font-black text-slate-800 mb-2">Health Records</h2>
-              <p className="text-slate-500 max-w-lg">Access encrypted patient historical data, lab results, and genomic signatures.</p>
+              <h2 className="text-3xl font-black text-slate-800 mb-2">
+                {activeTab === 'records' && "Health Records"}
+                {activeTab === 'vitals' && "Physiological Monitor"}
+                {activeTab === 'prescriptions' && "Pharmacy Enclave"}
+              </h2>
+              <p className="text-slate-500 max-w-lg">
+                {activeTab === 'records' && "Access encrypted patient historical data, lab results, and genomic signatures."}
+                {activeTab === 'vitals' && "Real-time telemetry and historically significant vitals synced from internal blockchain state."}
+                {activeTab === 'prescriptions' && "Verified medication history and dispensing logs secured via ConsentChain."}
+              </p>
             </div>
             {status === 'verified' && (
               <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -212,59 +234,134 @@ export default function HospitalPortal() {
                {/* Decorative background */}
                <div className="absolute top-0 right-0 w-64 h-64 bg-sky-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50" />
                
-               <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <section className="space-y-6">
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                      <h4 className="text-xs uppercase font-black text-slate-400 tracking-widest mb-4">Patient Profile</h4>
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-slate-300">
-                          <User size={32} />
-                        </div>
-                        <div>
-                          <p className="text-lg font-bold text-slate-800">Jane Cooper</p>
-                          <p className="text-sm text-slate-500">Member ID: #44892-0</p>
-                        </div>
+               <div className="relative z-10">
+                  {/* Identity Header */}
+                  <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-slate-300">
+                        <User size={32} />
+                      </div>
+                      <div>
+                        {/* Dynamic Identity seeded from User Address */}
+                        <p className="text-lg font-bold text-slate-800 uppercase tracking-tight">
+                          {userAddress ? getPatientIdentity(userAddress).name : "Unknown Subject"}
+                        </p>
+                        <p className="text-sm text-slate-500 font-mono tracking-tighter">
+                          {userAddress ? getPatientIdentity(userAddress).id : "#00000"} • Patient Identity Verified
+                        </p>
                       </div>
                     </div>
-
-                    <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-900">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="text-xs uppercase font-black opacity-60 tracking-widest">Active Vitals</h4>
-                        <Activity size={16} className="text-emerald-500" />
+                    <div className="flex items-center gap-6">
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Blood Type</p>
+                        <p className="font-black text-sky-500 italic">{userAddress ? getPatientIdentity(userAddress).bloodType : "--"}</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-2xl font-black italic">72 <span className="text-[10px] font-bold not-italic font-sans opacity-50">BPM</span></p>
-                          <p className="text-[10px] font-bold uppercase opacity-40 leading-none">Heart Rate</p>
-                        </div>
-                        <div>
-                          <p className="text-2xl font-black italic">98.6 <span className="text-[10px] font-bold not-italic font-sans opacity-50">°F</span></p>
-                          <p className="text-[10px] font-bold uppercase opacity-40 leading-none">Temperature</p>
-                        </div>
+                      <div className="text-right border-l border-slate-200 pl-6">
+                        <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">D.O.B</p>
+                        <p className="font-bold text-slate-700">{userAddress ? getPatientIdentity(userAddress).dob : "--"}</p>
                       </div>
                     </div>
-                  </section>
+                  </div>
 
-                  <section className="space-y-6">
-                    <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                       <h4 className="text-xs uppercase font-black text-slate-400 tracking-widest mb-4">Upcoming Appointments</h4>
-                       <div className="space-y-3">
-                         {[1, 2].map(i => (
-                           <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                              <div className="flex flex-col">
-                                <span className="text-sm font-bold text-slate-700">MRI Cardiovascular</span>
-                                <span className="text-[10px] text-slate-400 font-medium italic">Oct 12, 2026 • 10:30 AM</span>
-                              </div>
-                              <Play size={12} className="text-sky-500 fill-sky-500" />
+                  <AnimatePresence mode="wait">
+                    {activeTab === 'records' && (
+                      <motion.div 
+                        key="records" 
+                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                      >
+                        <section className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-900">
+                          <div className="flex justify-between items-start mb-4">
+                            <h4 className="text-xs uppercase font-black opacity-60 tracking-widest">Active Vitals</h4>
+                            <Activity size={16} className="text-emerald-500" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-2xl font-black italic">72 <span className="text-[10px] font-bold not-italic font-sans opacity-50">BPM</span></p>
+                              <p className="text-[10px] font-bold uppercase opacity-40 leading-none">Heart Rate</p>
+                            </div>
+                            <div>
+                              <p className="text-2xl font-black italic">98.6 <span className="text-[10px] font-bold not-italic font-sans opacity-50">°F</span></p>
+                              <p className="text-[10px] font-bold uppercase opacity-40 leading-none">Temperature</p>
+                            </div>
+                          </div>
+                        </section>
+
+                        <section className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                           <h4 className="text-xs uppercase font-black text-slate-400 tracking-widest mb-4">Upcoming Appointments</h4>
+                           <div className="space-y-3">
+                             {[1, 2].map(i => (
+                               <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-slate-700">MRI Cardiovascular</span>
+                                    <span className="text-[10px] text-slate-400 font-medium italic">Oct 12, 2026 • 10:30 AM</span>
+                                  </div>
+                                  <Play size={12} className="text-sky-500 fill-sky-500" />
+                               </div>
+                             ))}
+                           </div>
+                        </section>
+                      </motion.div>
+                    )}
+
+                    {activeTab === 'vitals' && (
+                      <motion.div 
+                        key="vitals" 
+                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                        className="space-y-6"
+                      >
+                        <div className="p-8 bg-slate-900 rounded-3xl border border-white/5 text-white flex flex-col items-center justify-center min-h-[300px] overflow-hidden relative">
+                           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_0)] [background-size:20px_20px]" />
+                           <Activity size={48} className="text-sky-400 mb-6 animate-pulse" />
+                           <h4 className="text-xl font-black tracking-widest uppercase mb-2">Telemetry Online</h4>
+                           <p className="text-sky-300/50 text-xs font-mono uppercase tracking-tighter">SECURE WEARABLE SYNC ESTABLISHED</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                           <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Glucose Level</p>
+                             <p className="text-3xl font-black text-slate-800">94 <span className="text-xs font-medium text-slate-400">mg/dL</span></p>
+                           </div>
+                           <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Oxygen (SpO2)</p>
+                             <p className="text-3xl font-black text-slate-800">98 <span className="text-xs font-medium text-slate-400">%</span></p>
+                           </div>
+                           <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Sleep Score</p>
+                             <p className="text-3xl font-black text-sky-500">88 <span className="text-xs font-medium text-slate-400">/ 100</span></p>
+                           </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === 'prescriptions' && (
+                      <motion.div 
+                        key="prescriptions" 
+                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                        className="space-y-4"
+                      >
+                         {[
+                           { name: "Lisinopril Hub-A", dose: "10mg Tablet, Once Daily", type: "Cardio" },
+                           { name: "Metformin Enclave", dose: "500mg, Twice Daily", type: "Metabolic" },
+                           { name: "Atorvastatin Sync", dose: "20mg, Evening", type: "Lipid" }
+                         ].map((med, i) => (
+                           <div key={i} className="p-5 bg-white border border-slate-100 rounded-2xl flex justify-between items-center group hover:border-sky-200 transition-all">
+                             <div className="flex items-center gap-4">
+                               <div className="w-10 h-10 bg-sky-50 rounded-xl flex items-center justify-center text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-all">
+                                 <AlertCircle size={20} />
+                               </div>
+                               <div>
+                                 <p className="text-sm font-black text-slate-800 uppercase tracking-tight">{med.name}</p>
+                                 <p className="text-xs text-slate-500 font-medium">{med.dose}</p>
+                               </div>
+                             </div>
+                             <div className="text-right">
+                               <span className="text-[10px] font-black text-slate-400 uppercase border border-slate-200 px-3 py-1 rounded-full">{med.type}</span>
+                             </div>
                            </div>
                          ))}
-                       </div>
-                    </div>
-                    
-                    <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all font-bold text-sm flex items-center justify-center gap-2">
-                       + Add New Medical Note
-                    </button>
-                  </section>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                </div>
             </div>
           )}
