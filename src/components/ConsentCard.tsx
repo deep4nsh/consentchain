@@ -26,22 +26,28 @@ interface ConsentCardProps {
     onDecline: () => void;
     isLoading: boolean;
     isWalletConnected: boolean;
+    dark?: boolean;
 }
-
 export default function ConsentCard({
     organizations, dataScopes, purposes, durations,
     selectedOrganization, onOrganizationChange,
     selectedScopes, onScopeToggle,
     selectedPurpose, onPurposeChange,
     selectedDuration, onDurationChange,
-    onAccept, onDecline, isLoading, isWalletConnected
+    onAccept, onDecline, isLoading, isWalletConnected, dark = false
 }: ConsentCardProps) {
+    const textColor = dark ? 'text-white' : 'text-slate-900';
+    const subTextColor = dark ? 'text-slate-400' : 'text-slate-600';
+    const labelColor = dark ? 'text-slate-500' : 'text-slate-700';
+    const cardBg = dark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200';
+    const selectBg = dark ? 'bg-black/40 border-white/10' : 'bg-white border-slate-200';
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="glass-card rounded-2xl p-4 md:p-8 max-w-lg w-full relative"
+            className={`rounded-2xl p-4 md:p-8 max-w-lg w-full relative ${dark ? 'glass-card' : 'bg-white shadow-xl border border-slate-100'}`}
         >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
 
@@ -49,27 +55,27 @@ export default function ConsentCard({
                 <Shield className="w-8 h-8 text-blue-400" />
             </div>
 
-            <h2 className="text-xl md:text-2xl font-bold text-center mb-1">Consent Configuration</h2>
-            <p className="text-gray-400 text-xs md:text-sm text-center mb-6 md:mb-8">
+            <h2 className={`text-xl md:text-2xl font-black text-center mb-1 tracking-tight ${textColor}`}>Consent Configuration</h2>
+            <p className={`text-xs md:text-sm text-center mb-6 md:mb-8 font-medium ${subTextColor}`}>
                 Configure the parameters for the consent you are about to grant.
             </p>
 
             <div className="space-y-4 mb-8">
                 {/* Organization Setup */}
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4 transition-all hover:border-white/20">
+                <div className={`p-5 rounded-2xl border space-y-4 transition-all hover:border-blue-500/30 ${cardBg}`}>
                     <div className="flex items-center space-x-2">
                         <Building2 className="w-5 h-5 text-indigo-400" />
-                        <p className="text-sm font-semibold text-gray-300">Requesting Organization</p>
+                        <p className={`text-sm font-bold ${labelColor}`}>Requesting Organization</p>
                     </div>
                     <div className="relative">
                         <select
                             value={selectedOrganization}
                             onChange={(e) => onOrganizationChange(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                            className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 appearance-none transition-all font-bold text-sm ${selectBg} ${textColor}`}
                         >
-                            <option value="" disabled className="bg-slate-900">Select an Organization</option>
+                            <option value="" disabled className={dark ? 'bg-slate-900' : 'bg-white text-slate-400'}>Select an Organization</option>
                             {organizations.map(org => (
-                                <option key={org.id} value={org.id} className="bg-slate-900">{org.name}</option>
+                                <option key={org.id} value={org.id} className={dark ? 'bg-slate-900' : 'bg-white'}>{org.name}</option>
                             ))}
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
@@ -81,10 +87,10 @@ export default function ConsentCard({
                 </div>
 
                 {/* Data Scopes Setup */}
-                <div className="p-4 md:p-5 rounded-2xl bg-white/5 border border-white/10 space-y-3 md:space-y-4 transition-all hover:border-white/20">
+                <div className={`p-4 md:p-5 rounded-2xl border space-y-3 md:space-y-4 transition-all hover:border-blue-500/30 ${cardBg}`}>
                     <div className="flex items-center space-x-2">
                         <FileText className="w-5 h-5 text-blue-400" />
-                        <p className="text-sm font-semibold text-gray-300">Data Scopes</p>
+                        <p className={`text-sm font-bold ${labelColor}`}>Data Scopes</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {dataScopes.map((scope) => {
@@ -95,12 +101,12 @@ export default function ConsentCard({
                                     whileHover={{ scale: 1.01 }}
                                     whileTap={{ scale: 0.99 }}
                                     onClick={() => onScopeToggle(scope.id)}
-                                    className={`flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer transition-all ${isSelected ? 'glass-card border-blue-500/50 bg-blue-500/10' : 'bg-black/20 border-white/5 hover:border-white/20'}`}
+                                    className={`flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-blue-500 bg-blue-500/10' : `${dark ? 'bg-black/20 border-white/5' : 'bg-white border-slate-100'} hover:border-blue-500/20`}`}
                                 >
-                                    <div className="text-blue-400 flex-shrink-0">
-                                        {isSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 opacity-30" />}
+                                    <div className="text-blue-500 flex-shrink-0">
+                                        {isSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 opacity-20" />}
                                     </div>
-                                    <span className={`text-[11px] md:text-xs font-medium leading-tight ${isSelected ? 'text-white' : 'text-gray-400'}`}>{scope.label}</span>
+                                    <span className={`text-[11px] md:text-xs font-bold leading-tight ${isSelected ? (dark ? 'text-white' : 'text-slate-900') : (dark ? 'text-slate-400' : 'text-slate-500')}`}>{scope.label}</span>
                                 </motion.div>
                             );
                         })}
@@ -108,20 +114,20 @@ export default function ConsentCard({
                 </div>
 
                 {/* Duration & Purpose Setup */}
-                <div className="p-4 md:p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4 md:space-y-6 transition-all hover:border-white/20">
+                <div className={`p-4 md:p-5 rounded-2xl border space-y-4 md:space-y-6 transition-all hover:border-blue-500/30 ${cardBg}`}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2 md:space-y-3">
                             <div className="flex items-center space-x-2">
-                                <Clock className="w-4 h-4 text-amber-400" />
-                                <p className="text-[11px] md:text-xs font-bold uppercase tracking-wider text-gray-400">Validity</p>
+                                <Clock className="w-4 h-4 text-amber-500" />
+                                <p className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${labelColor}`}>Validity</p>
                             </div>
                             <div className="relative">
                                 <select
                                     value={selectedDuration}
                                     onChange={(e) => onDurationChange(Number(e.target.value))}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                                    className={`w-full border rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 appearance-none transition-all font-bold ${selectBg} ${textColor}`}
                                 >
-                                    <option value={0} disabled className="bg-slate-900">Duration</option>
+                                    <option value={0} disabled className={dark ? 'bg-slate-900' : 'bg-white'}>Duration</option>
                                     {durations.map(dur => (
                                         <option key={dur.value} value={dur.value} className="bg-slate-900">{dur.label}</option>
                                     ))}
@@ -131,16 +137,16 @@ export default function ConsentCard({
 
                         <div className="space-y-2 md:space-y-3">
                             <div className="flex items-center space-x-2">
-                                <FileText className="w-4 h-4 text-emerald-400" />
-                                <p className="text-[11px] md:text-xs font-bold uppercase tracking-wider text-gray-400">Purpose</p>
+                                <FileText className="w-4 h-4 text-emerald-500" />
+                                <p className={`text-[10px] md:text-[11px] font-black uppercase tracking-widest ${labelColor}`}>Purpose</p>
                             </div>
                             <div className="relative">
                                 <select
                                     value={selectedPurpose}
                                     onChange={(e) => onPurposeChange(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none transition-all"
+                                    className={`w-full border rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 appearance-none transition-all font-bold ${selectBg} ${textColor}`}
                                 >
-                                    <option value="" disabled className="bg-slate-900">Purpose</option>
+                                    <option value="" disabled className={dark ? 'bg-slate-900' : 'bg-white'}>Purpose</option>
                                     {purposes.map(purp => (
                                         <option key={purp.id} value={purp.id} className="bg-slate-900">{purp.label}</option>
                                     ))}
@@ -178,7 +184,7 @@ export default function ConsentCard({
                 </button>
             </div>
 
-            <p className="text-xs text-center text-gray-500 mt-6">
+            <p className={`text-[10px] md:text-xs text-center mt-6 font-medium ${subTextColor}`}>
                 By clicking Allow, your consent will be cryptographically hashed and recorded immutably on the Algorand blockchain.
             </p>
         </motion.div>

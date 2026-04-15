@@ -11,9 +11,10 @@ interface ConsentWidgetProps {
     orgId: string;
     onSuccess?: (receipt: any) => void;
     onError?: (error: string) => void;
+    dark?: boolean;
 }
 
-export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidgetProps) {
+export default function ConsentWidget({ orgId, onSuccess, onError, dark = false }: ConsentWidgetProps) {
     const { activeAddress: accountAddress, signTransactions } = useWallet();
     
     const [status, setStatus] = useState<'pending' | 'processing' | 'success'>('pending');
@@ -149,6 +150,7 @@ export default function ConsentWidget({ orgId, onSuccess, onError }: ConsentWidg
                 onDecline={handleDecline}
                 isLoading={status === 'processing'}
                 isWalletConnected={!!accountAddress}
+                dark={dark}
             />
         </div>
     );

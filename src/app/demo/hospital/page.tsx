@@ -415,17 +415,17 @@ export default function HospitalPortal() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowGrantWidget(false)} />
           
-          <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 right-0 p-8 z-10">
+          <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 right-0 p-8 z-10 sticky">
               <button 
                 onClick={() => setShowGrantWidget(false)}
-                className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-all"
+                className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-all ml-auto"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="p-12">
+            <div className="px-12 pb-12 pt-0">
               <div className="mb-8">
                 <h3 className="text-2xl font-black text-slate-800 tracking-tighter mb-2">GRANT MEDICAL ACCESS</h3>
                 <p className="text-slate-500 text-sm font-medium leading-relaxed">You are issuing a decentralized medical consent for St. Mary's Digital Health.</p>
@@ -435,6 +435,7 @@ export default function HospitalPortal() {
                  <ConsentWidget 
                    orgId={ORG_ID} 
                    onSuccess={handleGrantSuccess}
+                   dark={false}
                  />
               </div>
             </div>

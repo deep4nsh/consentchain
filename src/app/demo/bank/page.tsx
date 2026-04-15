@@ -383,6 +383,7 @@ export default function BankPortal() {
                    <ConsentWidget 
                      orgId={ORG_ID} 
                      onSuccess={handleGrantSuccess}
+                     dark={true}
                    />
                 </div>
               </div>
