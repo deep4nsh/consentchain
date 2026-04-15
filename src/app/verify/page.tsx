@@ -150,7 +150,7 @@ export default function VerifyPortal() {
                 {/* Search Form */}
                 <motion.div
                     variants={itemVariants}
-                    className="glass-card rounded-2xl p-6 sm:p-8"
+                    className="bg-[#050608] border-[3px] border-white/20 shadow-[8px_8px_0_#6366f1] rounded-[2rem] p-6 sm:p-8 relative z-10"
                 >
                     <form onSubmit={handleSearch} className="space-y-6">
                         <div className="space-y-2">
@@ -162,10 +162,10 @@ export default function VerifyPortal() {
                                 <select
                                     value={selectedOrg}
                                     onChange={(e) => setSelectedOrg(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none"
+                                    className="w-full bg-[#0A0C10] border-[2px] border-white/20 rounded-[1rem] px-4 py-4 text-white hover:border-indigo-400 focus:outline-none focus:border-indigo-400 appearance-none font-bold tracking-wide transition-colors"
                                 >
                                     {ORGANIZATIONS.map(org => (
-                                        <option key={org.id} value={org.id} className="bg-slate-900">{org.name}</option>
+                                        <option key={org.id} value={org.id} className="bg-[#0A0C10]">{org.name}</option>
                                     ))}
                                 </select>
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
@@ -187,7 +187,7 @@ export default function VerifyPortal() {
                                     placeholder="Enter Algorand Wallet Address (e.g. 52X...)"
                                     value={inputAddress}
                                     onChange={(e) => setInputAddress(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                    className="w-full bg-[#0A0C10] border-[2px] border-white/20 rounded-[1rem] pl-12 pr-4 py-4 text-white placeholder-gray-500 hover:border-indigo-400 focus:outline-none focus:border-indigo-400 font-medium transition-colors"
                                 />
                                 <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
                             </div>
@@ -196,7 +196,7 @@ export default function VerifyPortal() {
                         <button
                             type="submit"
                             disabled={isSearching || !inputAddress.trim()}
-                            className="w-full flex items-center justify-center px-4 py-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/20 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.01] active:scale-[0.99]"
+                            className="w-full flex items-center justify-center px-4 py-5 border-[3px] border-white/20 rounded-[1.5rem] shadow-[6px_6px_0_#4f46e5] hover:shadow-[3px_3px_0_#4f46e5] text-base font-black uppercase tracking-widest text-white bg-indigo-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:translate-y-1"
                         >
                             {isSearching ? (
                                 <>
@@ -217,13 +217,13 @@ export default function VerifyPortal() {
                         className="space-y-6"
                     >
                         {searchResult.status !== 'SUCCESS' ? (
-                            <div className="glass-card border-rose-500/20 rounded-xl p-8 text-center">
+                            <div className="bg-[#050608] border-[3px] border-rose-500/50 shadow-[8px_8px_0_#ef4444] rounded-[2rem] p-8 text-center relative z-10">
                                 <ShieldAlert className="w-12 h-12 text-rose-400 mx-auto mb-4" />
                                 <h3 className="text-xl font-bold text-white mb-2">Consent Not Verified</h3>
                                 <p className="text-gray-400">{searchResult.message}</p>
                             </div>
                         ) : searchResult.latestConsent && (
-                            <div className="glass-card rounded-2xl overflow-hidden">
+                            <div className="bg-[#050608] border-[3px] border-white/20 shadow-[8px_8px_0_#22c55e] rounded-[2rem] overflow-hidden relative z-10">
                                 <div className="border-b border-white/5 bg-white/5 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div className="space-y-1">
                                         <h3 className="text-xl font-bold text-white">
@@ -254,18 +254,18 @@ export default function VerifyPortal() {
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-1">
+                                        <div className="bg-[#0A0C10] rounded-xl p-4 border-[2px] border-white/10 space-y-1">
                                             <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Purpose</div>
-                                            <div className="text-gray-200 capitalize font-medium">{searchResult.latestConsent.purpose.replace(/_/g, ' ')}</div>
+                                            <div className="text-white capitalize font-bold leading-relaxed">{searchResult.latestConsent.purpose.replace(/_/g, ' ')}</div>
                                         </div>
-                                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-1">
+                                        <div className="bg-[#0A0C10] rounded-xl p-4 border-[2px] border-white/10 space-y-1">
                                             <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Transaction ID</div>
                                             {searchResult.latestConsent.id !== 'SmartContractState' && searchResult.latestConsent.id !== 'CorruptedState' ? (
                                                 <a
                                                     href={`https://lora.algokit.io/testnet/transaction/${searchResult.latestConsent.id}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-blue-400 hover:text-blue-300 truncate block font-mono text-sm font-medium transition-colors"
+                                                    className="text-indigo-400 hover:text-indigo-300 truncate block font-mono text-sm font-bold transition-colors"
                                                 >
                                                     {searchResult.latestConsent.id}
                                                 </a>
@@ -273,13 +273,13 @@ export default function VerifyPortal() {
                                                 <span className="text-gray-500 block font-mono text-sm mt-1">Source: On-Chain State</span>
                                             )}
                                         </div>
-                                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-1">
+                                        <div className="bg-[#0A0C10] rounded-xl p-4 border-[2px] border-white/10 space-y-1">
                                             <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Granted On</div>
-                                            <div className="text-gray-200 font-medium">{new Date(searchResult.latestConsent.timestamp).toLocaleString()}</div>
+                                            <div className="text-white font-bold">{new Date(searchResult.latestConsent.timestamp).toLocaleString()}</div>
                                         </div>
-                                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-1">
+                                        <div className="bg-[#0A0C10] rounded-xl p-4 border-[2px] border-white/10 space-y-1">
                                             <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Expires On</div>
-                                            <div className="text-gray-200 font-medium">{new Date(searchResult.latestConsent.expiryDate).toLocaleString()}</div>
+                                            <div className="text-white font-bold">{new Date(searchResult.latestConsent.expiryDate).toLocaleString()}</div>
                                         </div>
                                     </div>
                                 </div>

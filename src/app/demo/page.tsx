@@ -1,21 +1,23 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useMotionTemplate, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
-import { Shield, Activity, CreditCard, Heart, ArrowRight, ExternalLink, BadgeCheck } from 'lucide-react';
+import { Shield, Activity, CreditCard, ArrowRight, ExternalLink, BadgeCheck, Zap } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, MouseEvent } from 'react';
 
+// --- ANIMATION VARIANTS --- //
 const container = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
 };
 
 const item = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
 };
 
+// --- DATA --- //
 const portals = [
     {
         name: "St. Mary's Digital Health",
@@ -23,8 +25,8 @@ const portals = [
         description: 'Access patient records, vitals, and appointments with on-chain consent verification.',
         href: '/demo/hospital',
         icon: Activity,
-        color: 'from-sky-500 to-blue-600',
-        shadow: 'shadow-sky-500/20',
+        glowColor: 'rgba(56, 189, 248, 0.15)', // Light Blue Glow
+        borderColor: 'rgba(56, 189, 248, 0.5)',
         badge: 'Medical',
     },
     {
@@ -33,8 +35,8 @@ const portals = [
         description: 'Unlock secure financial data, transaction history, and yield analytics.',
         href: '/demo/bank',
         icon: CreditCard,
-        color: 'from-emerald-500 to-teal-600',
-        shadow: 'shadow-emerald-500/20',
+        glowColor: 'rgba(16, 185, 129, 0.15)', // Emerald Glow
+        borderColor: 'rgba(16, 185, 129, 0.5)',
         badge: 'Banking',
     },
     {
@@ -43,8 +45,8 @@ const portals = [
         description: 'Institutional wealth management portal with encrypted net worth and DeFi integrations.',
         href: '/partners/metafinance',
         icon: Shield,
-        color: 'from-emerald-400 to-cyan-500',
-        shadow: 'shadow-emerald-400/20',
+        glowColor: 'rgba(168, 85, 247, 0.15)', // Purple Glow
+        borderColor: 'rgba(168, 85, 247, 0.5)',
         badge: 'Finance',
     },
 ];
@@ -54,21 +56,61 @@ const externalPortals = [
         name: "St. Mary's Medical Portal",
         description: 'Standalone medical portal with Sentinel auto-unlock.',
         href: 'https://medical-demo-theta.vercel.app',
-        badge: 'External',
     },
     {
         name: 'MetaBank Institutional',
         description: 'Standalone banking portal with ledger verification.',
         href: 'https://banking-demo-coral.vercel.app',
-        badge: 'External',
     },
     {
         name: 'UltraCover Insurance',
         description: 'Standalone insurance portal with claims access.',
         href: 'https://insurance-demo-inky.vercel.app',
-        badge: 'External',
     },
 ];
+
+// --- COMPONENTS --- //
+
+function SpotlightCard({ children, glowColor, borderColor, isTarget }: any) {
+  let mouseX = useMotionValue(0);
+  let mouseY = useMotionValue(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
+    let { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+
+  return (
+    <div
+      className={`group relative h-full rounded-[2rem] border-[3px] bg-[#0A0C10] overflow-hidden transition-all duration-300 transform-gpu
+        ${isTarget ? 'border-indigo-400 shadow-[8px_8px_0_#818CF8] hover:shadow-[4px_4px_0_#818CF8] translate-y-1' : 'border-white/20 shadow-[8px_8px_0_#6366f1] hover:shadow-[4px_4px_0_#6366f1] hover:translate-y-1'}
+      `}
+      onMouseMove={handleMouseMove}
+    >
+      <motion.div
+        className="pointer-events-none absolute -inset-px rounded-[2rem] opacity-0 transition duration-300 group-hover:opacity-100 mix-blend-screen"
+        style={{
+          background: useMotionTemplate`radial-gradient(400px circle at ${mouseX}px ${mouseY}px, ${borderColor}, transparent 80%)`,
+        }}
+      />
+      <motion.div
+        className="pointer-events-none absolute inset-0 rounded-[2rem] opacity-0 transition duration-300 group-hover:opacity-100"
+        style={{
+          background: useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, ${glowColor}, transparent 80%)`,
+        }}
+      />
+      
+      {isTarget && (
+         <div className="absolute inset-0 bg-indigo-500/5 animate-pulse-slow pointer-events-none" />
+      )}
+
+      <div className="relative z-10 w-full h-full flex flex-col">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 function DemoPortalContent() {
     const searchParams = useSearchParams();
@@ -86,112 +128,111 @@ function DemoPortalContent() {
             initial="hidden"
             animate="visible"
             variants={container}
-            className="min-h-screen flex flex-col items-center p-4 pt-28 pb-20"
+            className="min-h-screen flex flex-col items-center p-4 pt-32 pb-20 relative overflow-hidden"
         >
+            {/* Cinematic Background Mesh */}
+            <div className="absolute inset-0 pointer-events-none z-0 opacity-20">
+                <div className="absolute top-[-10%] right-[-10%] w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px] mix-blend-screen" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[100px] mix-blend-screen" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(10,12,16,0.95)_80%)]" />
+            </div>
+
             {/* Header */}
-            <motion.div variants={item} className="text-center mb-16 max-w-2xl">
-                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-6">
-                    <Shield className="w-4 h-4 text-blue-400" />
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Demo Portals</span>
+            <motion.div variants={item} className="text-center mb-16 max-w-2xl relative z-10">
+                <div className="inline-flex items-center space-x-2 bg-[#050608] border-[2px] border-white/20 rounded-full px-5 py-2 mb-8 shadow-[4px_4px_0_#6366f1]">
+                    <Zap className="w-4 h-4 text-indigo-400 animate-pulse" />
+                    <span className="text-xs font-black text-white uppercase tracking-widest">Enterprise Sandbox</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
-                    Choose a Portal
+                <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight text-white drop-shadow-2xl uppercase">
+                    Verification <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Hub.</span>
                 </h1>
-                <p className="text-gray-400 text-lg leading-relaxed">
-                    Each portal simulates a real-world organization. Connect your wallet, 
-                    grant consent, and watch the data unlock in real-time.
+                <p className="text-gray-400 text-lg font-light leading-relaxed max-w-xl mx-auto">
+                    A zero-trust environment. Test how applications interact directly with your cryptographic consent rules perfectly.
                 </p>
             </motion.div>
 
-            {/* In-App Portals */}
-            <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            {/* Spotlight Bento Grid Portals */}
+            <motion.div variants={item} className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24 relative z-10">
                 {portals.map((portal) => {
                     const isTarget = grantTarget === portal.orgId;
+                    
                     return (
-                        <motion.div 
+                        <div 
                             key={portal.orgId} 
-                            variants={item}
                             ref={isTarget ? targetRef : null}
-                            className={isTarget ? 'relative' : ''}
+                            className={isTarget ? "md:col-span-2 lg:col-span-1" : ""} // Subtle asymmetry fallback if 2 columns
                         >
-                            {isTarget && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-1 rounded-full bg-blue-600 text-[10px] font-black uppercase tracking-tighter text-white animate-bounce shadow-xl shadow-blue-600/40 border border-blue-400/50">
-                                    Action Required
-                                </div>
-                            )}
-                            <Link href={portal.href} className="block group">
-                                <div className={`relative glass-card rounded-3xl p-8 h-full overflow-hidden border transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-1 ${
-                                    isTarget 
-                                        ? 'border-blue-500/50 shadow-[0_0_50px_-12px_rgba(59,130,246,0.5)] ring-2 ring-blue-500/20' 
-                                        : 'border-white/5 hover:border-white/15'
-                                }`}>
-                                    {/* Background glow */}
-                                    <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${portal.color} opacity-10 blur-[60px] group-hover:opacity-20 transition-opacity duration-500`} />
+                            <SpotlightCard glowColor={portal.glowColor} borderColor={portal.borderColor} isTarget={isTarget}>
+                                <Link href={portal.href} className="w-full h-full block relative p-8 flex flex-col justify-between z-10">
                                     
-                                    <div className="relative z-10">
-                                        {/* Badge */}
-                                        <div className="flex justify-between items-start mb-6">
-                                            <span className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                                {portal.badge}
-                                            </span>
-                                            {isTarget && <BadgeCheck className="w-5 h-5 text-blue-400 animate-pulse" />}
+                                    <div>
+                                        <div className="flex justify-between items-start mb-8">
+                                            <div className="w-16 h-16 rounded-[1rem] bg-[#050608] border-2 border-white/20 shadow-[4px_4px_0_rgba(255,255,255,0.1)] flex items-center justify-center">
+                                                <portal.icon className="w-8 h-8 text-indigo-400 opacity-90" />
+                                            </div>
+                                            
+                                            {isTarget && (
+                                                <div className="px-3 py-1.5 rounded-full bg-indigo-500/20 text-[10px] font-black uppercase tracking-widest text-indigo-300 border-2 border-indigo-500/50 shadow-[2px_2px_0_rgba(99,102,241,0.5)]">
+                                                    Action Required
+                                                </div>
+                                            )}
                                         </div>
                                         
-                                        {/* Icon */}
-                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${portal.color} flex items-center justify-center mb-6 ${portal.shadow} shadow-lg group-hover:scale-110 transition-transform duration-500`}>
-                                            <portal.icon className="w-7 h-7 text-white" />
-                                        </div>
-
-                                        {/* Content */}
-                                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{portal.name}</h3>
-                                        <p className="text-sm text-gray-500 leading-relaxed mb-6">{portal.description}</p>
-
-                                        {/* CTA */}
-                                        <div className={`flex items-center text-sm font-bold transition-colors ${isTarget ? 'text-blue-400' : 'text-gray-500'} group-hover:text-white`}>
-                                            <span>Enter Portal</span>
-                                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                        </div>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2 block">
+                                            {portal.badge} Integration
+                                        </span>
+                                        <h3 className="text-2xl font-bold text-gray-100 mb-3 group-hover:text-white transition-colors">
+                                            {portal.name}
+                                        </h3>
+                                        <p className="text-sm text-gray-400 leading-relaxed mb-8">
+                                            {portal.description}
+                                        </p>
                                     </div>
-                                </div>
-                            </Link>
-                        </motion.div>
+
+                                    <div className="flex items-center text-sm font-bold text-gray-500 group-hover:text-white transition-colors mt-auto">
+                                        Initialize Link
+                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+
+                                </Link>
+                            </SpotlightCard>
+                        </div>
                     );
                 })}
-            </div>
+            </motion.div>
 
-            {/* External Standalone Demos */}
-            <motion.div variants={item} className="w-full max-w-5xl">
-                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <ExternalLink className="w-4 h-4" />
-                    Standalone Demo Sites
-                    <span className="text-[10px] font-normal text-gray-600 normal-case tracking-normal ml-2">
-                        — These work with the Sentinel extension for auto-unlock
-                    </span>
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Floating Standalone Demos */}
+            <motion.div variants={item} className="w-full max-w-4xl relative z-10 flex flex-col items-center">
+                <div className="flex items-center gap-4 mb-8 opacity-60">
+                    <div className="h-px w-24 bg-gradient-to-r from-transparent to-white/20" />
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.3em]">Standalone Sites</span>
+                    <div className="h-px w-24 bg-gradient-to-l from-transparent to-white/20" />
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-4">
                     {externalPortals.map((portal) => (
-                        <a
+                        <motion.a
+                            whileHover={{ y: -5 }}
                             key={portal.href}
                             href={portal.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group flex items-center justify-between p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/15 hover:bg-white/[0.04] transition-all"
+                            className="flex items-center gap-4 p-4 pr-6 rounded-[1rem] bg-[#0A0C10] border-2 border-white/20 hover:border-white/40 transition-all shadow-[4px_4px_0_#6366f1]"
                         >
-                            <div>
-                                <h4 className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">{portal.name}</h4>
-                                <p className="text-xs text-gray-600 mt-1">{portal.description}</p>
+                            <div className="w-8 h-8 rounded-full bg-[#050608] flex items-center justify-center border-2 border-white/20 shadow-[2px_2px_0_rgba(255,255,255,0.2)]">
+                                <ExternalLink className="w-4 h-4 text-indigo-400" />
                             </div>
-                            <ExternalLink className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors flex-shrink-0 ml-4" />
-                        </a>
+                            <div>
+                                <h4 className="text-sm font-black text-white uppercase">{portal.name}</h4>
+                            </div>
+                        </motion.a>
                     ))}
                 </div>
             </motion.div>
-
-            {/* Footer hint */}
-            <motion.div variants={item} className="mt-16 text-center">
-                <p className="text-gray-600 text-xs">
-                    All portals connect to the same ConsentChain smart contract on Algorand Testnet (App #{' '}
-                    <span className="text-gray-400 font-mono">758027210</span>)
+            
+            <motion.div variants={item} className="mt-20 text-center opacity-40 relative z-10">
+                <p className="text-[10px] font-mono tracking-widest text-gray-400 uppercase">
+                    Secured by Algorand App #758027210
                 </p>
             </motion.div>
         </motion.main>
@@ -201,8 +242,8 @@ function DemoPortalContent() {
 export default function DemoPortalHub() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
-                <Shield className="w-12 h-12 text-blue-500 animate-pulse" />
+            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c]">
+                <Shield className="w-12 h-12 text-purple-500 animate-pulse-slow" />
             </div>
         }>
             <DemoPortalContent />

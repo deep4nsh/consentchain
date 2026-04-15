@@ -9,8 +9,14 @@ const FALLBACK_PROJECT_ID = "3c87e9c9eb18903e620d440d42194c5f";
 export function AppWalletProvider({ children }: { children: ReactNode }) {
     const walletManager = useMemo(() => {
         // Dynamically detect origin to prevent "Invalid QR" or "Origin Mismatch" on preview/local domains
-        const origin = typeof window !== "undefined" ? window.location.origin : "https://consentchain-vert.vercel.app";
+        let origin = "";
+        if (typeof window !== "undefined") {
+            origin = window.location.origin;
+        } else {
+            origin = process.env.NEXT_PUBLIC_SITE_URL || "https://consentchain-vert.vercel.app";
+        }
         const projectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || FALLBACK_PROJECT_ID;
+
 
         const dAppMetadata = {
             name: "ConsentChain",

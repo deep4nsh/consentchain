@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+
 import Navbar from "@/components/Navbar";
 import BackgroundElements from "@/components/BackgroundElements";
 import { AppWalletProvider } from "@/context/WalletContext";
+import CustomCursor from "@/components/CustomCursor";
 
-const geistSans = Geist({
+const geistSans = {
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+};
 
-const geistMono = Geist_Mono({
+const geistMono = {
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+};
+
 
 export const metadata: Metadata = {
   title: "ConsentChain",
@@ -34,6 +34,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-950 text-gray-50`}
       >
+        <CustomCursor />
         <AppWalletProvider>
           <BackgroundElements />
           <Navbar />

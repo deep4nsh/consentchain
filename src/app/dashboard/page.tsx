@@ -207,28 +207,28 @@ function DashboardContent() {
                 </div>
 
                 {mounted && accountAddress && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={handleSync}
                             disabled={isSyncing}
                             aria-label="Sync identity with Sentinel extension"
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-xl border transition-all focus:ring-2 focus:ring-blue-500/50 ${
+                            className={`flex items-center space-x-2 px-5 py-3 rounded-[1rem] border-[3px] transition-all focus:outline-none focus:ring-0 ${
                                 syncSuccess 
-                                ? 'bg-green-500/20 border-green-500/50 text-green-400' 
-                                : 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20'
+                                ? 'bg-[#050608] border-green-500 shadow-[4px_4px_0_#22c55e] text-green-400' 
+                                : 'bg-[#0A0C10] border-indigo-400 shadow-[6px_6px_0_#6366f1] text-indigo-400 hover:shadow-[3px_3px_0_#6366f1] hover:translate-y-1'
                             }`}
                         >
                             <Shield className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                            <span className="text-xs font-bold uppercase tracking-wider">
+                            <span className="text-xs font-black uppercase tracking-widest">
                                 {syncSuccess ? 'Synced!' : 'Sync Sentinel'}
                             </span>
                         </motion.button>
 
-                        <div className="glass-card px-4 py-2 flex items-center space-x-3 self-center md:self-auto rounded-xl border border-white/10">
+                        <div className="bg-[#0A0C10] px-5 py-3 flex items-center space-x-3 self-center md:self-auto rounded-[1rem] border-[3px] border-white/20 shadow-[6px_6px_0_#6366f1]">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-xs font-mono font-medium text-gray-400">
+                            <span className="text-xs font-mono font-bold text-white tracking-wider">
                                 {accountAddress.substring(0, 6)}...{accountAddress.substring(accountAddress.length - 6)}
                             </span>
                         </div>
@@ -245,10 +245,10 @@ function DashboardContent() {
             )}
 
             {!accountAddress ? (
-                <motion.div variants={itemVariants} className="w-full max-w-lg glass-card rounded-3xl p-12 text-center mt-12">
-                    <Shield className="w-16 h-16 text-yellow-500/80 mx-auto mb-6 animate-pulse-slow" />
-                    <h2 className="text-2xl font-bold mb-3 text-white">Wallet Not Connected</h2>
-                    <p className="text-gray-400 mb-8 font-light">
+                <motion.div variants={itemVariants} className="w-full max-w-lg bg-[#050608] border-[3px] border-white/20 shadow-[8px_8px_0_#6366f1] rounded-[2rem] p-12 text-center mt-12">
+                    <Shield className="w-16 h-16 text-indigo-400 mx-auto mb-6 animate-pulse-slow" />
+                    <h2 className="text-3xl font-black mb-3 text-white tracking-wide uppercase">Vault Locked</h2>
+                    <p className="text-gray-400 mb-8 font-medium">
                         Please connect your Algorand wallet to view and manage your data consents.
                     </p>
                 </motion.div>
@@ -261,14 +261,14 @@ function DashboardContent() {
                     <p className="text-gray-500 font-light">Decrypting on-chain permissions...</p>
                 </div>
             ) : consents.length === 0 ? (
-                <motion.div variants={itemVariants} className="w-full max-w-5xl glass-card rounded-3xl p-20 text-center border-dashed border-white/5">
-                    <Database className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold mb-2 text-gray-300">Clean Slate</h2>
-                    <p className="text-gray-500 font-light mb-8">You haven't granted any data permissions yet.</p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <motion.div variants={itemVariants} className="w-full max-w-5xl bg-[#0A0C10] border-[3px] border-white/20 shadow-[12px_12px_0_#6366f1] rounded-[2rem] p-20 text-center">
+                    <Database className="w-16 h-16 text-indigo-600 mx-auto mb-6" />
+                    <h2 className="text-3xl font-black mb-4 text-white tracking-wide uppercase">Clean Slate</h2>
+                    <p className="text-gray-400 font-medium mb-12">You haven't granted any data permissions yet. Start experimenting in the demo portals.</p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                         <a
                             href="/demo"
-                            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all hover:scale-105"
+                            className="px-8 py-4 bg-indigo-600 border-[3px] border-white/20 shadow-[6px_6px_0_rgba(255,255,255,0.1)] text-white rounded-[1.5rem] font-black uppercase text-sm transition-all hover:translate-y-1 hover:shadow-[3px_3px_0_rgba(255,255,255,0.1)]"
                         >
                             Grant Your First Consent
                         </a>
@@ -276,7 +276,7 @@ function DashboardContent() {
                             href="https://bank.testnet.algorand.network/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-6 py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl font-bold text-sm hover:bg-white/10 transition-all hover:text-white"
+                            className="px-8 py-4 bg-[#050608] border-[3px] border-white/20 text-gray-300 rounded-[1.5rem] font-black uppercase text-sm shadow-[6px_6px_0_rgba(255,255,255,0.1)] hover:bg-[#0A0C10] transition-all hover:text-white"
                         >
                             Get Test ALGO (Faucet) ↗
                         </a>
@@ -318,7 +318,7 @@ function DashboardContent() {
                             <motion.div
                                 variants={itemVariants}
                                 key={consent.organization_id + consent.transactionId}
-                                className={`glass-card p-6 flex flex-col md:flex-row gap-6 group hover:border-white/20 transition-all rounded-3xl relative overflow-hidden ${consent.status !== 'active' ? 'opacity-50 grayscale shadow-none' : 'hover:shadow-[0_0_30px_rgba(59,130,246,0.1)]'}`}
+                                className={`bg-[#0A0C10] border-[3px] border-white/20 p-8 flex flex-col md:flex-row gap-8 group hover:border-indigo-400 transition-all rounded-[2rem] shadow-[8px_8px_0_#6366f1] hover:shadow-[4px_4px_0_#6366f1] hover:translate-y-1 relative overflow-hidden ${consent.status !== 'active' ? 'opacity-50 grayscale shadow-none hover:translate-y-0 text-white' : ''}`}
                             >
                                 {/* Verification Badge */}
                                 <div className="absolute top-4 right-4 flex gap-2">
@@ -396,12 +396,12 @@ function DashboardContent() {
                                             onClick={() => handleRevoke(consent.organization_id)}
                                             disabled={revokingId === consent.organization_id}
                                             aria-label={`Revoke access for ${consent.organization_id}`}
-                                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/20 disabled:opacity-50 text-xs font-bold group focus:ring-2 focus:ring-red-500/50"
+                                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#0A0C10] text-red-500 rounded-[1.5rem] transition-all border-[3px] border-red-500/50 shadow-[6px_6px_0_#ef4444] hover:shadow-[3px_3px_0_#ef4444] hover:translate-y-1 hover:bg-red-500/10 disabled:opacity-50 text-xs font-black uppercase tracking-widest group"
                                         >
                                             {revokingId === consent.organization_id ? (
-                                                <Activity className="w-3.5 h-3.5 animate-spin" />
+                                                <Activity className="w-4 h-4 animate-spin" />
                                             ) : (
-                                                <Trash2 className="w-3.5 h-3.5 group-hover:shake" />
+                                                <Trash2 className="w-4 h-4 group-hover:shake" />
                                             )}
                                             {revokingId === consent.organization_id ? 'Revoking...' : 'Revoke Access'}
                                         </button>
