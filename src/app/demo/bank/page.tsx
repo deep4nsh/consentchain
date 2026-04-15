@@ -84,6 +84,10 @@ export default function BankPortal() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 font-sans selection:bg-emerald-500/30">
+      {/* Sentinel Discovery Meta Tags */}
+      <meta name="consentchain-org-id" content="finsentinel-demo" />
+      <meta name="consentchain-app-id" content={APP_ID.toString()} />
+      
       {/* Sleek Dark Header */}
       <nav className="bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 px-8 py-5 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-3">

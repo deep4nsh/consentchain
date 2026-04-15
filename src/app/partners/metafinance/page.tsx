@@ -44,6 +44,10 @@ export default function MetaFinanceHub() {
 
     return (
         <div className="max-w-6xl mx-auto px-6">
+            {/* Sentinel Discovery Meta Tags */}
+            <meta name="consentchain-org-id" content="meta_finance" />
+            <meta name="consentchain-app-id" content={APP_ID.toString()} />
+
             {/* Fintech Header */}
             <header className="mb-12 flex items-center justify-between">
                 <div className="flex items-center space-x-4">

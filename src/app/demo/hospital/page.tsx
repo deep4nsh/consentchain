@@ -75,6 +75,10 @@ export default function HospitalPortal() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-sky-100">
+      {/* Sentinel Discovery Meta Tags */}
+      <meta name="consentchain-org-id" content="health-vault-demo" />
+      <meta name="consentchain-app-id" content={APP_ID.toString()} />
+
       {/* Premium Header */}
       <nav className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-2">
