@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ConsentChainSDK } from '@/lib/sdk/core';
 import { algodClient, indexerClient } from '@/lib/algorand';
-import { Shield, Lock, CheckCircle, Activity, FileText, User, Search, Play, AlertCircle } from 'lucide-react';
+import { Shield, Lock, CheckCircle, Activity, FileText, User, Search, Play, AlertCircle, X, Key, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getPatientIdentity } from '@/lib/demoUtils';
+import ConsentWidget from '@/components/ConsentWidget';
 
 const APP_ID = parseInt(process.env.NEXT_PUBLIC_APP_ID || '758027210', 10);
 
@@ -16,6 +17,7 @@ export default function HospitalPortal() {
   const [status, setStatus] = useState<'idle' | 'verified' | 'denied'>('idle');
   const [sentinelActive, setSentinelActive] = useState(false);
   const [activeTab, setActiveTab] = useState<'records' | 'vitals' | 'prescriptions'>('records');
+  const [showGrantWidget, setShowGrantWidget] = useState(false);
 
   const sdk = useMemo(() => new ConsentChainSDK(algodClient, indexerClient, APP_ID), []);
   const ORG_ID = 'health-vault-demo';
@@ -63,6 +65,12 @@ export default function HospitalPortal() {
     } finally {
       setIsVerifying(false);
     }
+  };
+
+  const handleGrantSuccess = () => {
+    setShowGrantWidget(false);
+    setIsLocked(false);
+    setStatus('verified');
   };
 
   return (
@@ -193,9 +201,27 @@ export default function HospitalPortal() {
                       onChange={(e) => setUserAddress(e.target.value)}
                     />
                     {status === 'denied' && (
-                      <p className="mt-2 text-xs text-rose-500 font-semibold flex items-center gap-1 justify-center animate-shake">
-                        <AlertCircle size={12} /> Verification failed. No consent found.
-                      </p>
+                      <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <p className="text-xs text-rose-500 font-semibold flex items-center gap-1 justify-center animate-shake">
+                          <AlertCircle size={12} /> Verification failed. No consent found.
+                        </p>
+                        
+                        <button 
+                          onClick={() => setShowGrantWidget(true)}
+                          className="w-full group flex items-center justify-between p-4 bg-sky-50 border border-sky-100 rounded-2xl hover:bg-sky-100 transition-all"
+                        >
+                          <div className="flex items-center gap-3 text-left">
+                            <div className="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-600">
+                              <Key size={16} />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black text-slate-800">GRANT ACCESS</p>
+                              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Issue Digital Medical Release</p>
+                            </div>
+                          </div>
+                          <ArrowRight size={16} className="text-slate-300 group-hover:text-sky-500 transition-colors" />
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -379,6 +405,38 @@ export default function HospitalPortal() {
           animation: shake 0.2s ease-in-out 0s 2;
         }
       `}</style>
+
+      {/* Grant Consent Modal/Overlay */}
+      {showGrantWidget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowGrantWidget(false)} />
+          
+          <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 right-0 p-8 z-10">
+              <button 
+                onClick={() => setShowGrantWidget(false)}
+                className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-12">
+              <div className="mb-8">
+                <h3 className="text-2xl font-black text-slate-800 tracking-tighter mb-2">GRANT MEDICAL ACCESS</h3>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed">You are issuing a decentralized medical consent for St. Mary's Digital Health.</p>
+              </div>
+
+              <div className="bg-slate-50 rounded-3xl border border-slate-100 p-1">
+                 <ConsentWidget 
+                   orgId={ORG_ID} 
+                   onSuccess={handleGrantSuccess}
+                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
