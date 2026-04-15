@@ -42,6 +42,7 @@ export default function BankPortal() {
       
       // Extension sends SENTINEL_HANDSHAKE with { verified, orgId, address }
       if (event.data?.type === 'SENTINEL_HANDSHAKE' && event.data?.verified) {
+        setUserAddress(event.data.address || ''); // Sync context with extension identity
         setIsLocked(false);
         setStatus('verified');
         setSentinelActive(true);

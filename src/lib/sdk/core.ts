@@ -182,7 +182,8 @@ export class ConsentChainSDK {
       // Filter boxes belonging to this user (prefix matches userPubKey)
       const userBoxes = allBoxes.filter((box: any) => {
         const name = box.name;
-        if (name.length < 32) return false;
+        // Safety: ensure name is defined and has minimum length for prefix check
+        if (!name || name.length < 32) return false;
         for (let i = 0; i < 32; i++) {
           if (name[i] !== userPubKey[i]) return false;
         }
@@ -214,7 +215,8 @@ export class ConsentChainSDK {
             status: isExpired ? 'expired' : 'active'
           });
         } catch (e) {
-          console.error("SDK: Error parsing box", e);
+          console.error("SDK: Error parsing box data for", box.name, e);
+          // Don't crash the whole list if one box is malformed
         }
       }
     } catch (err) {
