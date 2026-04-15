@@ -45,6 +45,10 @@ export default function HospitalPortal() {
     };
 
     window.addEventListener('message', handleMessage);
+    
+    // Broadcast readiness to Sentinel extension
+    window.postMessage({ type: 'SENTINEL_CLIENT_READY' }, window.location.origin);
+    
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
@@ -136,9 +140,9 @@ export default function HospitalPortal() {
             </div>
             <h3 className="text-sm font-bold mb-2">ConsentChain Protection</h3>
             <p className="text-xs text-slate-400 leading-relaxed mb-4">Your records are protected. Access requires on-chain verification.</p>
-            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${sentinelActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${sentinelActive ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-              {sentinelActive ? 'Sentinel Active' : 'Sentinel Inactive'}
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${sentinelActive || status === 'verified' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${sentinelActive || status === 'verified' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+              {sentinelActive || status === 'verified' ? 'Sentinel Active' : 'Sentinel Inactive'}
             </div>
           </div>
         </aside>

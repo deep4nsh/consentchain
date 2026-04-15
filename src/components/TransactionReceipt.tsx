@@ -9,9 +9,10 @@ interface ReceiptProps {
     round: number;
     hash: string;
     timestamp: string;
+    onClose?: () => void;
 }
 
-export default function TransactionReceipt({ transactionId, round, hash, timestamp }: ReceiptProps) {
+export default function TransactionReceipt({ transactionId, round, hash, timestamp, onClose }: ReceiptProps) {
     const [copied, setCopied] = useState(false);
 
     const copyToClipboard = () => {
@@ -145,10 +146,10 @@ export default function TransactionReceipt({ transactionId, round, hash, timesta
             </div>
 
             <button
-                onClick={() => window.location.reload()}
-                className="w-full mt-8 py-4 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] border border-white/10"
+                onClick={onClose || (() => window.location.reload())}
+                className="w-full mt-8 py-4 px-4 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-white font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] border border-white/10 shadow-lg"
             >
-                Done
+                {onClose ? 'Finish & View Records' : 'Done'}
             </button>
         </motion.div>
     );

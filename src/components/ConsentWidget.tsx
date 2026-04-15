@@ -116,7 +116,7 @@ export default function ConsentWidget({ orgId, onSuccess, onError, dark = false 
     };
 
     if (status === 'success') {
-        return <TransactionReceipt {...receiptData} />;
+        return <TransactionReceipt {...receiptData} onClose={() => onSuccess?.(receiptData)} />;
     }
 
     return (

@@ -53,6 +53,10 @@ export default function BankPortal() {
     };
 
     window.addEventListener('message', handleMessage);
+    
+    // Broadcast readiness to Sentinel extension
+    window.postMessage({ type: 'SENTINEL_CLIENT_READY' }, window.location.origin);
+    
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
@@ -153,11 +157,9 @@ export default function BankPortal() {
                <h3 className="text-lg font-bold mb-3 text-white">Zero-Knowledge Protocol</h3>
                <p className="text-sm text-slate-400 leading-relaxed mb-6">Your financial fingerprint remains private. We only verify the on-chain permission hash.</p>
                
-               <div className={`flex items-center gap-3 p-4 rounded-2xl ${sentinelActive ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-800/50 border border-white/5'}`}>
-                  <div className={`w-3 h-3 rounded-full ${sentinelActive ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]' : 'bg-slate-600'}`} />
-                  <span className={`text-xs font-black tracking-widest uppercase ${sentinelActive ? 'text-emerald-400' : 'text-slate-500'}`}>
-                    {sentinelActive ? 'Sentinel Protection: ACTIVE' : 'Sentinel Protection: OFFLINE'}
-                  </span>
+               <div className={`mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${sentinelActive || status === 'verified' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800/50 text-slate-500 border border-white/5'}`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${sentinelActive || status === 'verified' ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-600'}`} />
+                  {sentinelActive || status === 'verified' ? 'Sentinel Secured' : 'Sentinel Inactive'}
                </div>
             </div>
             

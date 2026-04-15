@@ -193,6 +193,11 @@ window.addEventListener('message', (event) => {
         // Handshake established
     }
 
+    // 1b. Portal Re-sync Request
+    if (event.data.type === 'SENTINEL_CLIENT_READY') {
+        checkAndSignal();
+    }
+
     // 2. Universal Identity Sync (No Extension ID required)
     if (event.data.type === 'SENTINEL_SYNC_IDENTITY') {
         const { address } = event.data;
